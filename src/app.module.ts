@@ -3,6 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { DbconfigService } from "./modules/dbconfig/dbconfig.service";
 import { ShopModule } from "./modules/shop/shop.module";
+import { UserModule } from "./modules/user/user.module";
 
 @Module({
     imports: [
@@ -12,6 +13,7 @@ import { ShopModule } from "./modules/shop/shop.module";
             useClass: DbconfigService,
         }),
         ShopModule,
+        UserModule,
     ],
     controllers: [],
     providers: [],
