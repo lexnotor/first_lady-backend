@@ -1,5 +1,6 @@
 import { DefaultEntity } from "@/utils/entity";
-import { Column, Entity } from "typeorm";
+import { Column, Entity, OneToMany, Relation } from "typeorm";
+import { UserShopEntity } from "../user/user.entity";
 
 @Entity("shops")
 class ShopEntity extends DefaultEntity {
@@ -14,6 +15,9 @@ class ShopEntity extends DefaultEntity {
 
     @Column({ default: null, nullable: true })
     cover: string;
+
+    @OneToMany(() => UserShopEntity, (userShop) => userShop.shop)
+    users?: Relation<UserShopEntity[]>;
 }
 
 export { ShopEntity };
