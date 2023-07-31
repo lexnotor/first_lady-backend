@@ -83,7 +83,9 @@ class RoleEntity extends DefaultEntity {
     @Column()
     description: string;
 
-    @OneToMany(() => UserShopRoleEntity, (user_shop) => user_shop.role)
+    @OneToMany(() => UserShopRoleEntity, (user_shop) => user_shop.role, {
+        cascade: true,
+    })
     user_shops?: Relation<UserShopRoleEntity[]>;
 }
 

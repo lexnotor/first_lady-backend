@@ -54,8 +54,7 @@ class RoleService {
         return role;
     }
 
-    // TODO: choose what to select
-    async getRoleById(id: string): Promise<RoleEntity> {
+    async getRoleById(id: string, loadRelation = false): Promise<RoleEntity> {
         let role: RoleEntity;
 
         const filter: FindOneOptions<RoleEntity> = {};
@@ -65,6 +64,9 @@ class RoleService {
             created_at: true,
             description: true,
             title: true,
+        };
+        filter.relations = {
+            user_shops: loadRelation,
         };
 
         try {
@@ -103,9 +105,8 @@ class RoleService {
         return roles;
     }
 
-    // TODO: make deletion cascade
     async deleteRole(id: string): Promise<string> {
-        const role = await this.getRoleById(id);
+        const role = await this.getRoleById(id, true);
 
         try {
             await this.roleRepo.softRemove(role);
