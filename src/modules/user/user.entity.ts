@@ -21,7 +21,7 @@ class UserEntity extends DefaultEntity {
     username: string;
 
     @Column()
-    eamil: string;
+    email: string;
 
     @Column()
     secret: string;
