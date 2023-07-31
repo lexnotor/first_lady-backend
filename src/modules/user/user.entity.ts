@@ -17,7 +17,7 @@ class UserEntity extends DefaultEntity {
     @Column()
     names: string;
 
-    @Column()
+    @Column({ unique: true })
     username: string;
 
     @Column()

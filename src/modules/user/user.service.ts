@@ -1,8 +1,8 @@
-import { UserInfo } from "@/index";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Equal, FindOneOptions, Repository } from "typeorm";
 import { ShopEntity } from "../shop/shop.entity";
+import { CreateUserDto, UpdateUserDto } from "./user.dto";
 import { UserEntity, UserShopEntity } from "./user.entity";
 
 @Injectable()
@@ -18,7 +18,7 @@ export class UserService {
         return secret;
     }
 
-    async createUser(payload: UserInfo): Promise<UserEntity> {
+    async createUser(payload: CreateUserDto): Promise<UserEntity> {
         const user = new UserEntity();
         // required
         user.username = payload.username;
@@ -67,8 +67,11 @@ export class UserService {
         return userShop;
     }
 
-    async updateUser(payload: UserInfo): Promise<UserEntity> {
-        const user = await this.getUserById(payload.id);
+    async updateUser(
+        payload: UpdateUserDto,
+        userId: string
+    ): Promise<UserEntity> {
+        const user = await this.getUserById(userId);
         user.address = payload.address ?? user.address;
         user.email = payload.email ?? user.email;
         user.names = payload.names ?? user.names;

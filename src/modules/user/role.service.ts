@@ -9,6 +9,7 @@ import {
     Repository,
 } from "typeorm";
 import { RoleEntity, UserShopEntity, UserShopRoleEntity } from "./user.entity";
+import { CreateRoleDto, UpdateRoleDto } from "./user.dto";
 
 @Injectable()
 class RoleService {
@@ -21,7 +22,7 @@ class RoleService {
         private readonly userShopRepo: Repository<UserShopRoleEntity>
     ) {}
 
-    async createRole(payload: RoleInfo): Promise<RoleEntity> {
+    async createRole(payload: CreateRoleDto): Promise<RoleEntity> {
         const role = new RoleEntity();
 
         role.title = payload.title;
@@ -63,10 +64,12 @@ class RoleService {
         return userShopRole;
     }
 
-    async updateRole(payload: RoleInfo): Promise<RoleEntity> {
-        const role = await this.getRoleById(payload.id);
+    async updateRole(
+        payload: UpdateRoleDto,
+        roleId: string
+    ): Promise<RoleEntity> {
+        const role = await this.getRoleById(roleId);
         role.description = payload.description ?? role.description;
-        role.title = payload.title ?? role.title;
 
         try {
             await this.roleRepo.save(role);
