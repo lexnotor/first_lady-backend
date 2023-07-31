@@ -32,7 +32,7 @@ export interface UserInfo extends DefaultInfo {
 export interface UserShopInfo extends DefaultInfo {
     user?: UserInfo;
     shop?: ShopInfo;
-    roles?: string;
+    roles?: UserShopRoleInfo[];
 }
 
 export interface RoleInfo extends DefaultInfo {

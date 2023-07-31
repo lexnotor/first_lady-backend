@@ -18,7 +18,9 @@ export class UserService {
         return secret;
     }
 
-    async createUser(payload: CreateUserDto): Promise<UserEntity> {
+    async createUser(
+        payload: CreateUserDto & { username: string; secret: string }
+    ): Promise<UserEntity> {
         const user = new UserEntity();
         // required
         user.username = payload.username;
@@ -34,6 +36,7 @@ export class UserService {
         try {
             await this.userRepo.save(user);
         } catch (error) {
+            console.log(error);
             throw new HttpException(
                 "USER_REQUIREMENT_FAIL",
                 HttpStatus.BAD_REQUEST

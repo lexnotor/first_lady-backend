@@ -1,5 +1,6 @@
 import {
     IsEmail,
+    IsEmpty,
     IsNotEmpty,
     IsOptional,
     IsString,
@@ -8,14 +9,10 @@ import {
 
 class CreateUserDto {
     // required
-    @IsNotEmpty()
-    @IsString()
-    @MinLength(3)
+    @IsEmpty()
     username: string;
 
-    @IsNotEmpty()
-    @IsString()
-    @MinLength(3)
+    @IsEmpty()
     secret: string;
 
     @IsNotEmpty()

@@ -20,19 +20,19 @@ class UserEntity extends DefaultEntity {
     @Column({ unique: true })
     username: string;
 
-    @Column()
+    @Column({ nullable: true })
     email: string;
 
     @Column()
     secret: string;
 
-    @Column()
+    @Column({ nullable: true })
     birth: string;
 
-    @Column()
+    @Column({ nullable: true })
     address: string;
 
-    @Column()
+    @Column({ nullable: true })
     bank: string;
 
     @OneToMany(() => UserShopEntity, (shop) => shop.user)
