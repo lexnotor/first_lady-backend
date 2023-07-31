@@ -4,8 +4,7 @@ import { Request } from "express";
 type UserIdentity = {
     id: string;
     username: string;
-    email: string;
-    types: string;
+    generated: string;
 };
 
 const User = createParamDecorator<void, ExecutionContext, UserIdentity>(
