@@ -30,18 +30,18 @@ export interface UserInfo extends DefaultInfo {
 }
 
 export interface UserShopInfo extends DefaultInfo {
-    user: UserInfo;
-    shop: ShopInfo;
-    roles: string;
+    user?: UserInfo;
+    shop?: ShopInfo;
+    roles?: string;
 }
 
 export interface RoleInfo extends DefaultInfo {
-    title: string;
-    description: string;
+    title?: string;
+    description?: string;
     user_shops?: UserShopRoleInfo[];
 }
 
 export interface UserShopRoleInfo extends DefaultInfo {
-    role: RoleInfo;
-    user_shop: UserShopInfo;
+    role?: RoleInfo;
+    user_shop?: UserShopInfo;
 }

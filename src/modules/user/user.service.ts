@@ -131,6 +131,29 @@ export class UserService {
         return user;
     }
 
+    async getUserShop(userId: string): Promise<UserShopEntity[]> {
+        let userShop: UserShopEntity[];
+        const filter: FindOneOptions<UserEntity> = {};
+        filter.select = { id: true, shops: true };
+
+        filter.relations = {
+            shops: { shop: true, roles: { role: true } },
+        };
+
+        filter.where = {
+            id: Equal(userId),
+        };
+
+        try {
+            const user = await this.userRepo.findOneOrFail(filter);
+            userShop = user.shops;
+        } catch (error) {
+            throw new HttpException("USER_NOT_FOUND", HttpStatus.CONFLICT);
+        }
+
+        return userShop;
+    }
+
     async deleteUser(userId: string): Promise<string> {
         const user = await this.getUserById(userId);
 

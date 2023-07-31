@@ -8,7 +8,7 @@ import {
     Like,
     Repository,
 } from "typeorm";
-import { RoleEntity } from "./user.entity";
+import { RoleEntity, UserShopEntity, UserShopRoleEntity } from "./user.entity";
 
 @Injectable()
 class RoleService {
@@ -16,7 +16,9 @@ class RoleService {
 
     constructor(
         @InjectRepository(RoleEntity)
-        private readonly roleRepo: Repository<RoleEntity>
+        private readonly roleRepo: Repository<RoleEntity>,
+        @InjectRepository(UserShopRoleEntity)
+        private readonly userShopRepo: Repository<UserShopRoleEntity>
     ) {}
 
     async createRole(payload: RoleInfo): Promise<RoleEntity> {
@@ -35,6 +37,30 @@ class RoleService {
         }
 
         return role;
+    }
+
+    async assignRoleTo(
+        userShop: UserShopEntity,
+        role: string | RoleEntity
+    ): Promise<UserShopRoleEntity> {
+        const userShopRole = new UserShopRoleEntity();
+
+        if (typeof role == "string")
+            userShopRole.role = await this.getRoleById(role);
+        else userShopRole.role = role;
+
+        userShopRole.user_shop = userShop;
+
+        try {
+            await this.userShopRepo.save(userShopRole);
+        } catch (error) {
+            throw new HttpException(
+                "FAIL_TO_ASSIGN_ROLE_TO_USER",
+                HttpStatus.CONFLICT
+            );
+        }
+
+        return userShopRole;
     }
 
     async updateRole(payload: RoleInfo): Promise<RoleEntity> {
@@ -78,7 +104,7 @@ class RoleService {
         return role;
     }
 
-    async findRoles(payload: RoleInfo, page = 1): Promise<RoleEntity[]> {
+    async findRoles(payload: RoleInfo = {}, page = 1): Promise<RoleEntity[]> {
         let roles: RoleEntity[];
 
         const filter: FindManyOptions<RoleEntity> = {};
