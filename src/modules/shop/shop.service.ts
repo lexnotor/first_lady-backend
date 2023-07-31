@@ -1,7 +1,7 @@
-import { ShopInfo } from "@/index";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { CreateShopDto } from "./shop.dto";
 import { ShopEntity } from "./shop.entity";
 
 @Injectable()
@@ -11,7 +11,7 @@ export class ShopService {
         private readonly shopRepo: Repository<ShopEntity>
     ) {}
 
-    async createShop(payload: ShopInfo): Promise<ShopEntity> {
+    async createShop(payload: CreateShopDto): Promise<ShopEntity> {
         const shop = new ShopEntity();
         shop.title = payload.title;
         shop.address = payload.address ?? null;

@@ -77,7 +77,7 @@ class UserShopRoleEntity extends DefaultEntity {
  */
 @Entity("roles")
 class RoleEntity extends DefaultEntity {
-    @Column()
+    @Column({ unique: true })
     title: string;
 
     @Column()

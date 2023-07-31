@@ -4,7 +4,7 @@ import { UserShopEntity } from "../user/user.entity";
 
 @Entity("shops")
 class ShopEntity extends DefaultEntity {
-    @Column()
+    @Column({ unique: true })
     title: string;
 
     @Column()
