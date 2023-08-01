@@ -7,7 +7,7 @@ class ShopEntity extends DefaultEntity {
     @Column({ unique: true })
     title: string;
 
-    @Column()
+    @Column({ nullable: true, default: null })
     address: string;
 
     @Column({ default: null, nullable: true })

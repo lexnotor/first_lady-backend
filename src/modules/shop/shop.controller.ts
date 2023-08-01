@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Post, UseGuards } from "@nestjs/common";
 import { User, UserIdentity } from "../auth/auth.decorator";
 import { AuthGuard } from "../auth/auth.guard";
 import { RoleService } from "../user/role.service";
@@ -18,7 +18,7 @@ export class ShopController {
     @UseGuards(AuthGuard)
     @Post("new")
     async createShop(
-        payload: CreateShopDto,
+        @Body() payload: CreateShopDto,
         @User() user: UserIdentity
     ): Promise<ShopEntity> {
         // create shop
