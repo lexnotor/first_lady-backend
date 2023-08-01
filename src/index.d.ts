@@ -53,6 +53,15 @@ export interface ProductInfo extends DefaultInfo {
     sales?: number;
     shop?: ShopInfo;
     category?: CategoryInfo;
+    product_v?: ProductVersionInfo[];
+}
+export interface ProductVersionInfo extends DefaultInfo {
+    title?: string;
+    description?: string;
+    quantity?: number;
+    price?: number;
+    key_id?: string;
+    product?: ProductInfo;
 }
 export interface CategoryInfo extends DefaultInfo {
     title?: string;

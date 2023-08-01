@@ -1,12 +1,14 @@
 import { Module } from "@nestjs/common";
-import { ProductController } from "./product.controller";
-import { ProductService } from "./product.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { AuthModule } from "../auth/auth.module";
+import { ShopModule } from "../shop/shop.module";
+import { ProductController } from "./product.controller";
 import {
     CategoryEntity,
     ProductEntity,
     ProductVersionEntity,
 } from "./product.entity";
+import { ProductService } from "./product.service";
 
 @Module({
     imports: [
@@ -15,6 +17,8 @@ import {
             CategoryEntity,
             ProductVersionEntity,
         ]),
+        AuthModule,
+        ShopModule,
     ],
     controllers: [ProductController],
     providers: [ProductService],

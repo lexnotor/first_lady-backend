@@ -1,4 +1,4 @@
-import { ProductInfo } from "@/index";
+import { ProductInfo, ProductVersionInfo } from "@/index";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { randomUUID } from "crypto";
@@ -23,7 +23,9 @@ export class ProductService {
         @InjectRepository(ProductEntity)
         private readonly productRepo: Repository<ProductEntity>,
         @InjectRepository(ProductVersionEntity)
-        private readonly product_vRepo: Repository<ProductVersionEntity>
+        private readonly product_vRepo: Repository<ProductVersionEntity>,
+        @InjectRepository(CategoryEntity)
+        private readonly categoryRepo: Repository<CategoryEntity>
     ) {}
 
     async createProduct(
@@ -36,10 +38,10 @@ export class ProductService {
         // required
         product.title = payload.title;
         product.shop = shop ?? undefined;
-        product.sales = 0;
+        product.sales = payload.sales ?? 0;
 
         // optional
-        product.category = category;
+        product.category = category ?? undefined;
         product.brand = payload.brand;
         product.description = payload.description ?? null;
 
@@ -52,12 +54,20 @@ export class ProductService {
             );
         }
 
+        return await this.getProductById(product.id);
+    }
+
+    async createProductVersion(
+        payload: ProductVersionInfo,
+        product: ProductEntity
+    ): Promise<ProductVersionEntity> {
         const product_v = new ProductVersionEntity();
 
-        product_v.description = payload.description ?? null;
+        product_v.description =
+            payload.description ?? product.description ?? null;
         product_v.key_id = randomUUID();
-        product_v.quantity = 0;
-        product_v.price = 0;
+        product_v.quantity = payload.quantity ?? 0;
+        product_v.price = payload.price ?? 0;
         product_v.title = "Default";
 
         product_v.product = product;
@@ -70,8 +80,7 @@ export class ProductService {
                 HttpStatus.BAD_REQUEST
             );
         }
-
-        return await this.getProductById(product.id);
+        return product_v;
     }
 
     async getProductById(productId: string): Promise<ProductEntity> {
@@ -109,6 +118,21 @@ export class ProductService {
         }
 
         return product;
+    }
+
+    async getCategoryById(id: string): Promise<CategoryEntity> {
+        let category: CategoryEntity;
+        const filter: FindOneOptions<CategoryEntity> = {};
+        filter.where = { id: Equal(id) };
+        filter.select = { id: true, title: true };
+
+        try {
+            category = await this.categoryRepo.findOneOrFail(filter);
+        } catch (error) {
+            throw new HttpException("CATEGORY_NOT_FOUND", HttpStatus.NOT_FOUND);
+        }
+
+        return category;
     }
 
     async findProduct(text: string, page = 1): Promise<ProductEntity[]> {

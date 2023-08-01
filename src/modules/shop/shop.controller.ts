@@ -29,11 +29,7 @@ export class ShopController {
 
         // assign user as owner
         const [role] = await this.roleService.findRoles({ title: "OWNER" });
-        const userShopRole = await this.roleService.assignRoleTo(
-            userShop,
-            role
-        );
-        console.log(userShopRole);
+        await this.roleService.assignRoleTo(userShop, role);
 
         return shop;
     }

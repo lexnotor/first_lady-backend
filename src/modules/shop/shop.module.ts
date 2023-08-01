@@ -10,5 +10,6 @@ import { AuthModule } from "../auth/auth.module";
     imports: [TypeOrmModule.forFeature([ShopEntity]), UserModule, AuthModule],
     controllers: [ShopController],
     providers: [ShopService],
+    exports: [ShopService],
 })
 export class ShopModule {}
