@@ -1,5 +1,12 @@
 import { DefaultEntity } from "@/utils/entity";
-import { Column, Entity, JoinColumn, ManyToOne, Relation } from "typeorm";
+import {
+    Column,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    OneToMany,
+    Relation,
+} from "typeorm";
 import { ShopEntity } from "../shop/shop.entity";
 
 @Entity("products")
@@ -23,6 +30,9 @@ class ProductEntity extends DefaultEntity {
     @ManyToOne(() => CategoryEntity)
     @JoinColumn({ name: "category_id" })
     category?: Relation<CategoryEntity>;
+
+    @OneToMany(() => ProductVersionEntity, (product_v) => product_v.product)
+    product_v: Relation<ProductVersionEntity[]>;
 }
 
 @Entity("categories")

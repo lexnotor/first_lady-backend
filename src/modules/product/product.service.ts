@@ -1,5 +1,7 @@
+import { ProductInfo } from "@/index";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { randomUUID } from "crypto";
 import {
     Equal,
     FindManyOptions,
@@ -7,16 +9,21 @@ import {
     Like,
     Repository,
 } from "typeorm";
-import { CategoryEntity, ProductEntity } from "./product.entity";
-import { ProductInfo } from "@/index";
 import { ShopEntity } from "../shop/shop.entity";
+import {
+    CategoryEntity,
+    ProductEntity,
+    ProductVersionEntity,
+} from "./product.entity";
 
 @Injectable()
 export class ProductService {
     pageSize = 20;
     constructor(
         @InjectRepository(ProductEntity)
-        private readonly productRepo: Repository<ProductEntity>
+        private readonly productRepo: Repository<ProductEntity>,
+        @InjectRepository(ProductVersionEntity)
+        private readonly product_vRepo: Repository<ProductVersionEntity>
     ) {}
 
     async createProduct(
@@ -45,7 +52,26 @@ export class ProductService {
             );
         }
 
-        return product;
+        const product_v = new ProductVersionEntity();
+
+        product_v.description = payload.description ?? null;
+        product_v.key_id = randomUUID();
+        product_v.quantity = 0;
+        product_v.price = 0;
+        product_v.title = "Default";
+
+        product_v.product = product;
+
+        try {
+            await this.product_vRepo.save(product_v);
+        } catch (error) {
+            throw new HttpException(
+                "PRODUCT_VERSION_REQUIREMENT_FAIL",
+                HttpStatus.BAD_REQUEST
+            );
+        }
+
+        return await this.getProductById(product.id);
     }
 
     async getProductById(productId: string): Promise<ProductEntity> {
@@ -54,6 +80,7 @@ export class ProductService {
         filter.relations = {
             category: true,
             shop: true,
+            product_v: true,
         };
         filter.select = {
             id: true,
@@ -62,6 +89,15 @@ export class ProductService {
             created_at: true,
             shop: { title: true, id: true },
             category: { created_at: true, title: true, id: true },
+            product_v: {
+                created_at: true,
+                id: true,
+                key_id: true,
+                price: true,
+                quantity: true,
+                title: true,
+                description: true,
+            },
         };
 
         let product: ProductEntity;
@@ -125,5 +161,19 @@ export class ProductService {
         }
 
         return await this.getProductById(product.id);
+    }
+
+    async deleteProduct(productId: string): Promise<string> {
+        const product = await this.getProductById(productId);
+
+        try {
+            await this.productRepo.softRemove(product);
+        } catch (error) {
+            throw new HttpException(
+                "FAIL_TO_DELETE_PRODUCT",
+                HttpStatus.NOT_MODIFIED
+            );
+        }
+        return productId;
     }
 }
