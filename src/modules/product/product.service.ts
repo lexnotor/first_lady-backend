@@ -1,12 +1,19 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import {
+    Equal,
+    FindManyOptions,
+    FindOneOptions,
+    Like,
+    Repository,
+} from "typeorm";
 import { CategoryEntity, ProductEntity } from "./product.entity";
 import { ProductInfo } from "@/index";
 import { ShopEntity } from "../shop/shop.entity";
 
 @Injectable()
 export class ProductService {
+    pageSize = 20;
     constructor(
         @InjectRepository(ProductEntity)
         private readonly productRepo: Repository<ProductEntity>
@@ -39,5 +46,84 @@ export class ProductService {
         }
 
         return product;
+    }
+
+    async getProductById(productId: string): Promise<ProductEntity> {
+        const filter: FindOneOptions<ProductEntity> = {};
+        filter.where = { id: Equal(productId) };
+        filter.relations = {
+            category: true,
+            shop: true,
+        };
+        filter.select = {
+            id: true,
+            title: true,
+            sales: true,
+            created_at: true,
+            shop: { title: true, id: true },
+            category: { created_at: true, title: true, id: true },
+        };
+
+        let product: ProductEntity;
+
+        try {
+            product = await this.productRepo.findOneOrFail(filter);
+        } catch (error) {
+            throw new HttpException("PRODUCT_NOT_FOUND", HttpStatus.NOT_FOUND);
+        }
+
+        return product;
+    }
+
+    async findProduct(text: string, page = 1): Promise<ProductEntity[]> {
+        let products: ProductEntity[];
+        const filter: FindManyOptions<ProductEntity> = {};
+
+        filter.where = [
+            { brand: Like(`%${text ?? ""}%`) },
+            { description: Like(`%${text ?? ""}%`) },
+            { title: Like(`%${text ?? ""}%`) },
+        ];
+        filter.relations = { shop: true, category: true };
+        filter.select = {
+            id: true,
+            brand: true,
+            title: true,
+            description: true,
+            created_at: true,
+            category: { title: true, id: true },
+            shop: { id: true, title: true },
+        };
+        filter.order = { created_at: "DESC" };
+        filter.skip = (page - 1) * this.pageSize;
+        filter.take = this.pageSize;
+
+        try {
+            products = await this.productRepo.find(filter);
+            if (products.length == 0) throw new Error("EMPTY_RESULT");
+        } catch (error) {
+            throw new HttpException("NO_PRODUCT_FOUND", HttpStatus.NOT_FOUND);
+        }
+
+        return products;
+    }
+
+    async updateProduct(payload: ProductInfo): Promise<ProductEntity> {
+        const product = await this.getProductById(payload.id);
+
+        product.brand = payload.brand ?? product.brand;
+        product.description = payload.description ?? product.description;
+        product.title = payload.title ?? product.title;
+
+        try {
+            await this.productRepo.save(product);
+        } catch (error) {
+            throw new HttpException(
+                "PRODUCT_NOT_MODIFIED",
+                HttpStatus.NOT_MODIFIED
+            );
+        }
+
+        return await this.getProductById(product.id);
     }
 }
