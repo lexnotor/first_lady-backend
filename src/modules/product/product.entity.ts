@@ -16,7 +16,7 @@ class ProductEntity extends DefaultEntity {
     @Column({ default: 0, nullable: true })
     sales: number;
 
-    @Column()
+    @ManyToOne(() => ShopEntity)
     shop?: Relation<ShopEntity>;
 
     @ManyToOne(() => CategoryEntity)
