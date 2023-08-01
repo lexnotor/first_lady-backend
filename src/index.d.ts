@@ -45,3 +45,17 @@ export interface UserShopRoleInfo extends DefaultInfo {
     role?: RoleInfo;
     user_shop?: UserShopInfo;
 }
+
+export interface ProductInfo extends DefaultInfo {
+    title?: string;
+    description?: string;
+    brand?: string;
+    sales?: number;
+    shop?: ShopInfo;
+    category?: CategoryInfo;
+}
+export interface CategoryInfo extends DefaultInfo {
+    title?: string;
+    description?: string;
+    shop?: ShopInfo;
+}

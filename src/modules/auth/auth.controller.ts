@@ -2,14 +2,18 @@ import { ApiResponse, UserInfo } from "@/index";
 import {
     Body,
     Controller,
+    Get,
     Headers,
     HttpException,
     HttpStatus,
     Post,
+    UseGuards,
 } from "@nestjs/common";
 import { isEmpty, isString, matches } from "class-validator";
 import { AuthService } from "./auth.service";
 import { CreateUserDto } from "../user/user.dto";
+import { AuthGuard } from "./auth.guard";
+import { User, UserIdentity } from "./auth.decorator";
 
 @Controller()
 export class AuthController {
@@ -54,6 +58,14 @@ export class AuthController {
         return {
             message: "SUCCES_SIGNUP",
             data: await this.authService.signup(payload, credential),
+        };
+    }
+
+    @Get("islogin")
+    @UseGuards(AuthGuard)
+    async verify(@User() user: UserIdentity) {
+        return {
+            data: user,
         };
     }
 }
