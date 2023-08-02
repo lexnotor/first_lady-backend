@@ -190,6 +190,48 @@ export class ProductService {
         return products;
     }
 
+    async findCategory(
+        text: string,
+        shopId: string,
+        page = 1
+    ): Promise<CategoryEntity[]> {
+        let categories: CategoryEntity[];
+
+        const filter: FindManyOptions<CategoryEntity> = {};
+
+        filter.where = [
+            {
+                description: Like(`%${text ?? ""}%`),
+                shop: shopId ? Equal(shopId) : undefined,
+            },
+            {
+                title: Like(`%${text ?? ""}%`),
+                shop: shopId ? Equal(shopId) : undefined,
+            },
+        ];
+        filter.order = { created_at: "DESC" };
+        filter.select = {
+            title: true,
+            description: true,
+            created_at: true,
+            id: true,
+            shop: { id: true, title: true },
+        };
+        filter.skip = (page - 1) * this.pageSize;
+        filter.take = this.pageSize;
+        filter.relations = { shop: true };
+
+        try {
+            categories = await this.categoryRepo.find(filter);
+            if (categories.length == 0) throw new Error("EMPTY_RESULTS");
+        } catch (error) {
+            console.log(page, error);
+            throw new HttpException("NOT_CATEGORY_FOUND", HttpStatus.NOT_FOUND);
+        }
+
+        return categories;
+    }
+
     async updateProduct(payload: ProductInfo): Promise<ProductEntity> {
         const product = await this.getProductById(payload.id);
 

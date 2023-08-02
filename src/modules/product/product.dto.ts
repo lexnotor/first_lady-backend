@@ -15,11 +15,6 @@ class CreateProductDto {
     @MinLength(3)
     title: string;
 
-    @IsNotEmpty()
-    @IsString()
-    @IsUUID()
-    shop: string;
-
     // optional
     @IsOptional()
     @IsString()
@@ -60,10 +55,6 @@ class CreateProductDto {
             quantity: this.quantity,
             price: this.price,
         };
-    }
-
-    getShopId(): string {
-        return this.shop;
     }
 
     getCategoryId(): string {
@@ -142,11 +133,6 @@ class CreateCategoryDto {
     @MinLength(3)
     description: string;
 
-    @IsNotEmpty()
-    @IsString()
-    @IsUUID()
-    shop: string;
-
     getCategory(): CategoryInfo {
         return {
             title: this.title,
@@ -167,9 +153,45 @@ class UpdateCategoryDto {
     description: string;
 }
 
+class FindProductDto {
+    @IsOptional()
+    @IsString()
+    text: string;
+
+    @IsOptional()
+    @IsString()
+    @IsUUID()
+    id: string;
+
+    @IsOptional()
+    @IsNumber()
+    page = 1;
+}
+
+class FindCategoryDto {
+    @IsOptional()
+    @IsString()
+    shop: string;
+
+    @IsOptional()
+    @IsString()
+    text: string;
+
+    @IsOptional()
+    @IsString()
+    @IsUUID()
+    id: string;
+
+    @IsOptional()
+    @IsNumber()
+    page = 1;
+}
+
 export {
     CreateCategoryDto,
     CreateProductDto,
     UpdateCategoryDto,
     UpdateProductDto,
+    FindCategoryDto,
+    FindProductDto,
 };

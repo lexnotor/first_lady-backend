@@ -1,8 +1,13 @@
-import { Body, Controller, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "../auth/auth.guard";
 import { ShopService } from "../shop/shop.service";
-import { CreateCategoryDto, CreateProductDto } from "./product.dto";
-import { ProductEntity } from "./product.entity";
+import {
+    CreateCategoryDto,
+    CreateProductDto,
+    FindCategoryDto,
+    FindProductDto,
+} from "./product.dto";
+import { CategoryEntity, ProductEntity } from "./product.entity";
 import { ProductService } from "./product.service";
 import { User, UserIdentity } from "../auth/auth.decorator";
 
@@ -22,10 +27,12 @@ export class ProductController {
         const product_ = payload.getProduct(),
             product_v = payload.getProduct_v(),
             categoryId = payload.getCategoryId(),
-            shopId = user.shop ?? payload.getShopId();
+            shopId = user.shop;
 
         // find category
-        const category = await this.productService.getCategoryById(categoryId);
+        const category = categoryId
+            ? await this.productService.getCategoryById(categoryId)
+            : undefined;
 
         // found shop
         const shop = await this.shopService.getShopById(shopId);
@@ -50,9 +57,7 @@ export class ProductController {
         @User() user: UserIdentity
     ) {
         // find shop
-        const shop = await this.shopService.getShopById(
-            user.shop ?? payload.shop
-        );
+        const shop = await this.shopService.getShopById(user.shop);
 
         // create category
         const category = await this.productService.createCategory(
@@ -60,6 +65,38 @@ export class ProductController {
             shop
         );
 
+        category.shop = undefined;
+
         return category;
+    }
+
+    @Post("photo/set")
+    @UseGuards(AuthGuard)
+    async setPhoto(@Query() data: any) {
+        return data;
+    }
+
+    @Get()
+    async findProduct(
+        @Query() query: FindProductDto
+    ): Promise<ProductEntity[] | ProductEntity> {
+        const { id: productID, page, text } = query;
+
+        const products = productID
+            ? await this.productService.getProductById(productID)
+            : await this.productService.findProduct(text, page);
+
+        return products;
+    }
+    @Get("category")
+    async findCategory(
+        @Query() query: FindCategoryDto
+    ): Promise<CategoryEntity[] | CategoryEntity> {
+        const { shop: shopId, text, id: categId, page } = query;
+        const categories = categId
+            ? await this.productService.getCategoryById(categId)
+            : await this.productService.findCategory(text, shopId, page);
+
+        return categories;
     }
 }
