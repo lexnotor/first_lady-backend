@@ -6,6 +6,7 @@ import { DbconfigService } from "./modules/dbconfig/dbconfig.service";
 import { ProductModule } from "./modules/product/product.module";
 import { ShopModule } from "./modules/shop/shop.module";
 import { UserModule } from "./modules/user/user.module";
+import { BasketModule } from "./modules/basket/basket.module";
 
 @Module({
     imports: [
@@ -18,6 +19,7 @@ import { UserModule } from "./modules/user/user.module";
         UserModule,
         ShopModule,
         ProductModule,
+        BasketModule,
     ],
     controllers: [],
     providers: [],

@@ -68,3 +68,13 @@ export interface CategoryInfo extends DefaultInfo {
     description?: string;
     shop?: ShopInfo;
 }
+
+export interface BasketInfo extends DefaultInfo {
+    user?: UserInfo;
+}
+export interface BasketProductInfo extends DefaultInfo {
+    quantity?: number;
+    shop?: ShopInfo;
+    product?: ProductInfo;
+    product_v?: ProductVersionInfo;
+}
