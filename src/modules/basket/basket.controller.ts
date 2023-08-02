@@ -1,19 +1,11 @@
-import {
-    Body,
-    Controller,
-    Get,
-    HttpException,
-    HttpStatus,
-    Post,
-    UseGuards,
-} from "@nestjs/common";
-import { BasketService } from "./basket.service";
-import { AuthGuard } from "../auth/auth.guard";
-import { UserService } from "../user/user.service";
+import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
 import { User, UserIdentity } from "../auth/auth.decorator";
-import { BasketEntity, BasketProductEntity } from "./basket.entity";
+import { AuthGuard } from "../auth/auth.guard";
 import { ProductService } from "../product/product.service";
+import { UserService } from "../user/user.service";
 import { AddItemDto } from "./basket.dto";
+import { BasketEntity, BasketProductEntity } from "./basket.entity";
+import { BasketService } from "./basket.service";
 
 @Controller("basket")
 export class BasketController {
