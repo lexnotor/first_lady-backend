@@ -157,6 +157,36 @@ export class ProductService {
         return category;
     }
 
+    async getProductVersionById(
+        versionId: string
+    ): Promise<ProductVersionEntity> {
+        let product_v: ProductVersionEntity;
+        const filter: FindOneOptions<ProductVersionEntity> = {};
+        filter.where = { id: Equal(versionId) };
+        filter.relations = { product: { shop: true } };
+        filter.select = {
+            created_at: true,
+            description: true,
+            id: true,
+            key_id: true,
+            price: true,
+            product: { title: true, id: true, shop: { id: true, title: true } },
+            title: true,
+            quantity: true,
+        };
+
+        try {
+            product_v = await this.product_vRepo.findOneOrFail(filter);
+        } catch (error) {
+            throw new HttpException(
+                "PRODUCT_VERSION_NOT_FOUND",
+                HttpStatus.NOT_FOUND
+            );
+        }
+
+        return product_v;
+    }
+
     async findProduct(text: string, page = 1): Promise<ProductEntity[]> {
         let products: ProductEntity[];
         const filter: FindManyOptions<ProductEntity> = {};

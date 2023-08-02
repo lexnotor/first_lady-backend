@@ -1,9 +1,10 @@
+import { BasketProductInfo } from "@/index";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { BasketEntity, BasketProductEntity } from "./basket.entity";
 import { Equal, FindOneOptions, Repository } from "typeorm";
+import { ProductVersionEntity } from "../product/product.entity";
 import { UserEntity } from "../user/user.entity";
-import { BasketProductInfo } from "@/index";
+import { BasketEntity, BasketProductEntity } from "./basket.entity";
 
 @Injectable()
 export class BasketService {
@@ -30,16 +31,38 @@ export class BasketService {
         return basket;
     }
 
-    // TODO
-    async addProduct(): Promise<BasketProductEntity> {
-        return null;
+    async addItem(
+        payload: BasketProductInfo,
+        basket: BasketEntity,
+        product_v: ProductVersionEntity
+    ): Promise<BasketProductEntity> {
+        if (payload.quantity > product_v.quantity)
+            throw new Error("OUT_OF_STOCK");
+
+        let basketProduct: BasketProductEntity;
+        basketProduct.quantity = payload.quantity;
+        basketProduct.basket = basket;
+        basketProduct.product_v = product_v;
+        basketProduct.product = product_v.product;
+        basketProduct.shop = product_v.product.shop;
+
+        try {
+            await this.basketProductRepo.save(basketProduct);
+        } catch (error) {
+            throw new HttpException(
+                "BASKET_REQUIMENT_FAIL",
+                HttpStatus.BAD_REQUEST
+            );
+        }
+
+        return basketProduct;
     }
 
-    async updateBasketProduct(
+    async updateItem(
         payload: BasketProductInfo,
         product_id: string
     ): Promise<BasketProductEntity> {
-        const basketItem = await this.getBasketProductById(product_id);
+        const basketItem = await this.getItemById(product_id);
 
         basketItem.quantity = payload.quantity ?? basketItem.quantity;
 
@@ -60,6 +83,12 @@ export class BasketService {
 
         const filter: FindOneOptions<BasketEntity> = {};
         filter.where = { id: Equal(basketId) };
+        filter.select = {
+            user: { username: true, id: true },
+            created_at: true,
+            id: true,
+        };
+        filter.relations = { user: true };
 
         try {
             basket = await this.basketRepo.findOneOrFail(filter);
@@ -70,7 +99,7 @@ export class BasketService {
         return basket;
     }
 
-    async getBasketProductById(item_id: string): Promise<BasketProductEntity> {
+    async getItemById(item_id: string): Promise<BasketProductEntity> {
         let product: BasketProductEntity;
         const filter: FindOneOptions<BasketProductEntity> = {};
 
@@ -97,8 +126,39 @@ export class BasketService {
         return product;
     }
 
-    // TODO
-    async deleteProduct(): Promise<BasketEntity> {
-        return null;
+    async getUserBasket(userId: string): Promise<BasketEntity> {
+        let basket: BasketEntity;
+
+        const filter: FindOneOptions<BasketEntity> = {};
+        filter.where = { user: Equal(userId) };
+        filter.select = {
+            user: { username: true, id: true },
+            created_at: true,
+            id: true,
+        };
+        filter.relations = { user: true };
+
+        try {
+            basket = await this.basketRepo.findOneOrFail(filter);
+        } catch (error) {
+            throw new HttpException("BASKET_NOT_FOUND", HttpStatus.NOT_FOUND);
+        }
+
+        return await this.getBasketById(basket.id);
+    }
+
+    async deleteItem(item_id: string): Promise<string> {
+        const item = await this.getItemById(item_id);
+
+        try {
+            await this.basketProductRepo.softRemove(item);
+        } catch (error) {
+            throw new HttpException(
+                "ITEM_NOT_DELETED",
+                HttpStatus.NOT_MODIFIED
+            );
+        }
+
+        return item_id;
     }
 }
