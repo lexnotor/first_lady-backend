@@ -1,16 +1,24 @@
 import { DefaultEntity } from "@/utils/entity";
-import { Column, Entity, JoinColumn, ManyToOne, Relation } from "typeorm";
+import {
+    Column,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    OneToOne,
+    Relation,
+} from "typeorm";
 import { ProductEntity, ProductVersionEntity } from "../product/product.entity";
 import { ShopEntity } from "../shop/shop.entity";
 import { UserEntity } from "../user/user.entity";
 
 @Entity("baskets")
 class BasketEntity extends DefaultEntity {
-    @ManyToOne(() => UserEntity)
+    @OneToOne(() => UserEntity)
     @JoinColumn({ name: "user_id" })
     user: Relation<UserEntity>;
 }
 
+@Entity("basket_products")
 class BasketProductEntity extends DefaultEntity {
     @Column({ default: 0, nullable: false })
     quantity: number;
@@ -26,6 +34,10 @@ class BasketProductEntity extends DefaultEntity {
     @ManyToOne(() => ProductVersionEntity)
     @JoinColumn({ name: "product_v_id" })
     product_v: Relation<ProductVersionEntity>;
+
+    @ManyToOne(() => BasketEntity)
+    @JoinColumn({ name: "basket_id" })
+    basket: Relation<BasketEntity>;
 }
 
 export { BasketEntity, BasketProductEntity };
