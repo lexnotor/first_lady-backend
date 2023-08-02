@@ -1,4 +1,4 @@
-import { ProductInfo, ProductVersionInfo } from "@/index";
+import { CategoryInfo, ProductInfo, ProductVersionInfo } from "@/index";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { randomUUID } from "crypto";
@@ -81,6 +81,28 @@ export class ProductService {
             );
         }
         return product_v;
+    }
+
+    async createCategory(
+        payload: CategoryInfo,
+        shop: ShopEntity
+    ): Promise<CategoryEntity> {
+        const category = new CategoryEntity();
+
+        category.title = payload.title;
+        category.description = payload.description ?? null;
+        category.shop = shop;
+
+        try {
+            await this.categoryRepo.save(category);
+        } catch (error) {
+            throw new HttpException(
+                "CATEGORY_REQUIREMENT_FAIL",
+                HttpStatus.BAD_REQUEST
+            );
+        }
+
+        return category;
     }
 
     async getProductById(productId: string): Promise<ProductEntity> {

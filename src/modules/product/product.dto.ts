@@ -1,4 +1,4 @@
-import { ProductInfo, ProductVersionInfo } from "@/index";
+import { CategoryInfo, ProductInfo, ProductVersionInfo } from "@/index";
 import {
     IsNotEmpty,
     IsNumber,
@@ -131,4 +131,45 @@ class UpdateProductDto {
     }
 }
 
-export { CreateProductDto, UpdateProductDto };
+class CreateCategoryDto {
+    @IsNotEmpty()
+    @IsString()
+    @MinLength(3)
+    title: string;
+
+    @IsOptional()
+    @IsString()
+    @MinLength(3)
+    description: string;
+
+    @IsNotEmpty()
+    @IsString()
+    @IsUUID()
+    shop: string;
+
+    getCategory(): CategoryInfo {
+        return {
+            title: this.title,
+            description: this.description,
+        };
+    }
+}
+
+class UpdateCategoryDto {
+    @IsOptional()
+    @IsString()
+    @MinLength(3)
+    title: string;
+
+    @IsOptional()
+    @IsString()
+    @MinLength(3)
+    description: string;
+}
+
+export {
+    CreateCategoryDto,
+    CreateProductDto,
+    UpdateCategoryDto,
+    UpdateProductDto,
+};

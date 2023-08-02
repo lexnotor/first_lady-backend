@@ -9,6 +9,7 @@ import { Repository } from "typeorm";
 import { CreateUserDto } from "../user/user.dto";
 import { UserEntity } from "../user/user.entity";
 import { UserService } from "../user/user.service";
+import { UserIdentity } from "./auth.decorator";
 
 @Injectable()
 export class AuthService {
@@ -37,14 +38,15 @@ export class AuthService {
             const user = await this.userRepo.findOneOrFail({
                 where: {
                     username: credential,
+                    shops: shopId ? { shop: { id: shopId } } : undefined,
                 },
                 select: {
                     secret: true,
                     id: true,
                     username: true,
-                    shops: { shop: { id: true } },
+                    shops: { shop: { id: true }, roles: true },
                 },
-                relations: { shops: { shop: true } },
+                relations: { shops: { shop: true, roles: { role: true } } },
             });
 
             if (shopId && user.shops[0]?.shop?.id != shopId)
@@ -54,18 +56,22 @@ export class AuthService {
                 throw new Error("INVALID_PASSWORD");
 
             // Generate token
-            const token = this.jwtService.sign(
-                {
-                    id: user.id,
-                    username: user.username,
-                    generated: new Date().toISOString(),
-                    crypt: randomUUID().replace("-", ""),
-                },
-                {
-                    expiresIn: "7d",
-                    secret: this.configService.get<string>("JWT_SECRET"),
-                }
-            );
+            const content: UserIdentity = {
+                id: user.id,
+                username: user.username,
+                generated: new Date().toISOString(),
+                n_v: randomUUID().replace("-", ""),
+                shop: shopId ? user.shops[0]?.shop?.id : null,
+                roles: shopId
+                    ? user.shops[0]?.roles.map((item) => item.role.title)
+                    : [],
+            };
+
+            const token = this.jwtService.sign(content, {
+                expiresIn: "7d",
+                secret: this.configService.get<string>("JWT_SECRET"),
+            });
+
             return token;
         } catch (error) {
             throw new HttpException(
