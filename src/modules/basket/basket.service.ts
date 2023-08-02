@@ -1,7 +1,7 @@
 import { BasketProductInfo } from "@/index";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Equal, FindOneOptions, Repository } from "typeorm";
+import { Equal, FindManyOptions, FindOneOptions, Repository } from "typeorm";
 import { ProductVersionEntity } from "../product/product.entity";
 import { UserEntity } from "../user/user.entity";
 import { BasketEntity, BasketProductEntity } from "./basket.entity";
@@ -78,7 +78,7 @@ export class BasketService {
         return basketItem;
     }
 
-    async getBasketById(basketId: string): Promise<BasketEntity> {
+    async getCartById(basketId: string): Promise<BasketEntity> {
         let basket: BasketEntity;
 
         const filter: FindOneOptions<BasketEntity> = {};
@@ -126,7 +126,7 @@ export class BasketService {
         return product;
     }
 
-    async getUserBasket(userId: string): Promise<BasketEntity> {
+    async getUserCart(userId: string): Promise<BasketEntity> {
         let basket: BasketEntity;
 
         const filter: FindOneOptions<BasketEntity> = {};
@@ -144,7 +144,23 @@ export class BasketService {
             throw new HttpException("BASKET_NOT_FOUND", HttpStatus.NOT_FOUND);
         }
 
-        return await this.getBasketById(basket.id);
+        return await this.getCartById(basket.id);
+    }
+
+    async getCartItems(cartId: string): Promise<BasketProductEntity[]> {
+        let items: BasketProductEntity[];
+        const filter: FindManyOptions<BasketProductEntity> = {};
+        filter.where = { basket: Equal(cartId) };
+        filter.select = {
+            id: true,
+            created_at: true,
+            product: { id: true, title: true },
+        };
+        try {
+            items;
+        } catch (error) {}
+
+        return null;
     }
 
     async deleteItem(item_id: string): Promise<string> {

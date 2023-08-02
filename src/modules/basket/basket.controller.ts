@@ -28,12 +28,12 @@ export class BasketController {
     async createBasket(@User() token: UserIdentity) {
         let basket: BasketEntity;
         try {
-            basket = await this.basketService.getUserBasket(token.id);
+            basket = await this.basketService.getUserCart(token.id);
         } catch (error) {
             const user = await this.userService.getUserById(token.id);
             basket = await this.basketService.createBasket(user);
         }
-        return await this.basketService.getBasketById(basket.id);
+        return await this.basketService.getCartById(basket.id);
     }
 
     @Post("item/add")
@@ -42,26 +42,29 @@ export class BasketController {
         @User() user: UserIdentity,
         @Body() payload: AddItemDto
     ): Promise<BasketProductEntity> {
-        let item: BasketProductEntity;
-        const cart = await this.basketService.getUserBasket(user.id);
+        const cart = await this.basketService.getUserCart(user.id);
 
         const product_v = await this.productService.getProductVersionById(
             payload.product_v
         );
 
-        try {
-            item = await this.basketService.addItem(
-                { quantity: payload.quantity },
-                cart,
-                product_v
-            );
-        } catch (error) {
-            throw new HttpException(
-                "ITEM_REQUIMENT_FAIL",
-                HttpStatus.BAD_REQUEST
-            );
-        }
+        const item = await this.basketService.addItem(
+            { quantity: payload.quantity },
+            cart,
+            product_v
+        );
 
         return await this.basketService.getItemById(item.id);
+    }
+
+    @Get("item")
+    @UseGuards(AuthGuard)
+    async getMyItem(
+        @User() user: UserIdentity
+    ): Promise<BasketProductEntity[]> {
+        const cart = await this.basketService.getUserCart(user.id);
+        const items = await this.basketService.getCartItems(cart.id);
+
+        return items;
     }
 }
