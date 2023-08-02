@@ -44,12 +44,15 @@ export class AuthService {
                     secret: true,
                     id: true,
                     username: true,
-                    shops: { shop: { id: true }, roles: true },
                 },
                 relations: { shops: { shop: true, roles: { role: true } } },
+                loadEagerRelations: true,
             });
 
-            if (shopId && user.shops[0]?.shop?.id != shopId)
+            // extract first shop
+            const [currentShop] = shopId ? user.shops || [] : null;
+
+            if (currentShop?.shop?.id != shopId)
                 throw new Error("USER_NOT_MATCH_SHOP");
 
             if (!compareSync(psw, user.secret))
@@ -61,9 +64,9 @@ export class AuthService {
                 username: user.username,
                 generated: new Date().toISOString(),
                 n_v: randomUUID().replace("-", ""),
-                shop: shopId ? user.shops[0]?.shop?.id : null,
+                shop: shopId ? currentShop?.shop?.id : null,
                 roles: shopId
-                    ? user.shops[0]?.roles.map((item) => item.role.title)
+                    ? currentShop?.roles.map((item) => item.role.title)
                     : [],
             };
 

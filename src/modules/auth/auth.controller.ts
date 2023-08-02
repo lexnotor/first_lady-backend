@@ -9,7 +9,7 @@ import {
     Post,
     UseGuards,
 } from "@nestjs/common";
-import { isEmpty, isString, matches } from "class-validator";
+import { isEmpty, isString, isUUID, matches } from "class-validator";
 import { AuthService } from "./auth.service";
 import { CreateUserDto } from "../user/user.dto";
 import { AuthGuard } from "./auth.guard";
@@ -21,8 +21,12 @@ export class AuthController {
 
     @Post("login")
     async login(
-        @Headers("authorization") credential: string
+        @Headers("authorization") credential: string,
+        @Body("shop") shopId: string
     ): Promise<ApiResponse<string>> {
+        if (shopId && !isUUID(shopId))
+            throw new HttpException("INVALID_SHOP", HttpStatus.BAD_REQUEST);
+
         // check the password
         if (
             isEmpty(credential) ||
@@ -36,7 +40,11 @@ export class AuthController {
 
         return {
             message: "SUCCES_LOGGED",
-            data: await this.authService.basicLogin(credential),
+            data: await this.authService.basicLogin(
+                credential,
+                undefined,
+                shopId
+            ),
         };
     }
 
