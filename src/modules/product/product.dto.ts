@@ -35,7 +35,7 @@ class CreateProductDto {
 
     @IsOptional()
     @IsNumber()
-    quantity: number;
+    quantity = 0;
 
     @IsOptional()
     @IsNumber()
@@ -153,6 +153,43 @@ class UpdateCategoryDto {
     description: string;
 }
 
+class CreateVersionDto {
+    @IsNotEmpty()
+    @IsString()
+    @MinLength(3)
+    title: string;
+
+    @IsNotEmpty()
+    @IsString()
+    @IsUUID()
+    product: string;
+
+    @IsOptional()
+    @IsString()
+    description: string;
+
+    @IsOptional()
+    @IsNumber()
+    quantity = 0;
+
+    @IsOptional()
+    @IsNumber()
+    price = 0;
+
+    getVersion(): ProductVersionInfo {
+        return {
+            price: this.price,
+            quantity: this.quantity,
+            title: this.title,
+            description: this.description,
+        };
+    }
+
+    getproduct(): string {
+        return this.product;
+    }
+}
+
 class FindProductDto {
     @IsOptional()
     @IsString()
@@ -194,4 +231,5 @@ export {
     UpdateProductDto,
     FindCategoryDto,
     FindProductDto,
+    CreateVersionDto,
 };

@@ -4,6 +4,7 @@ import { ShopService } from "../shop/shop.service";
 import {
     CreateCategoryDto,
     CreateProductDto,
+    CreateVersionDto,
     FindCategoryDto,
     FindProductDto,
 } from "./product.dto";
@@ -46,6 +47,21 @@ export class ProductController {
 
         // create version
         await this.productService.createProductVersion(product_v, product);
+
+        return await this.productService.getProductById(product.id);
+    }
+
+    @Post("version/new")
+    async createVersion(
+        @Body() payload: CreateVersionDto
+    ): Promise<ProductEntity> {
+        const product = await this.productService.getProductById(
+            payload.getproduct()
+        );
+        await this.productService.createProductVersion(
+            payload.getVersion(),
+            product
+        );
 
         return await this.productService.getProductById(product.id);
     }

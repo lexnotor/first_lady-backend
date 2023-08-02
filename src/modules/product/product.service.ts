@@ -225,7 +225,6 @@ export class ProductService {
             categories = await this.categoryRepo.find(filter);
             if (categories.length == 0) throw new Error("EMPTY_RESULTS");
         } catch (error) {
-            console.log(page, error);
             throw new HttpException("NOT_CATEGORY_FOUND", HttpStatus.NOT_FOUND);
         }
 
