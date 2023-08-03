@@ -1,6 +1,7 @@
-export type ApiResponse<T = object> = {
+export type ApiResponse<T = object, D = any> = {
     message: string;
     data?: T;
+    extra?: D;
 };
 
 export interface DefaultInfo {
