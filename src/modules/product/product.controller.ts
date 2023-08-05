@@ -11,6 +11,7 @@ import {
 import { CategoryEntity, ProductEntity } from "./product.entity";
 import { ProductService } from "./product.service";
 import { User, UserIdentity } from "../auth/auth.decorator";
+import { ApiResponse } from "@/index";
 
 @Controller("product")
 export class ProductController {
@@ -24,7 +25,7 @@ export class ProductController {
     async createProduct(
         @Body() payload: CreateProductDto,
         @User() user: UserIdentity
-    ): Promise<ProductEntity> {
+    ): Promise<ApiResponse<ProductEntity>> {
         const product_ = payload.getProduct(),
             product_v = payload.getProduct_v(),
             categoryId = payload.getCategoryId(),
@@ -48,13 +49,16 @@ export class ProductController {
         // create version
         await this.productService.createProductVersion(product_v, product);
 
-        return await this.productService.getProductById(product.id);
+        return {
+            message: "PRODUCT_CREATED",
+            data: await this.productService.getProductById(product.id),
+        };
     }
 
     @Post("version/new")
     async createVersion(
         @Body() payload: CreateVersionDto
-    ): Promise<ProductEntity> {
+    ): Promise<ApiResponse<ProductEntity>> {
         const product = await this.productService.getProductById(
             payload.getproduct()
         );
@@ -63,7 +67,10 @@ export class ProductController {
             product
         );
 
-        return await this.productService.getProductById(product.id);
+        return {
+            message: "PRODUCT_VERSION_CREATED",
+            data: await this.productService.getProductById(product.id),
+        };
     }
 
     @Post("category/new")
@@ -71,7 +78,7 @@ export class ProductController {
     async createCategory(
         @Body() payload: CreateCategoryDto,
         @User() user: UserIdentity
-    ) {
+    ): Promise<ApiResponse<CategoryEntity>> {
         // find shop
         const shop = await this.shopService.getShopById(user.shop);
 
@@ -83,7 +90,10 @@ export class ProductController {
 
         category.shop = undefined;
 
-        return category;
+        return {
+            message: "CATEGORY_CREATED",
+            data: category,
+        };
     }
 
     @Post("photo/set")
@@ -95,24 +105,32 @@ export class ProductController {
     @Get()
     async findProduct(
         @Query() query: FindProductDto
-    ): Promise<ProductEntity[] | ProductEntity> {
+    ): Promise<ApiResponse<ProductEntity[] | ProductEntity>> {
         const { id: productID, page, text } = query;
 
         const products = productID
             ? await this.productService.getProductById(productID)
             : await this.productService.findProduct(text, page);
 
-        return products;
+        return { message: "PRODUCT_FOUND", data: products };
     }
     @Get("category")
     async findCategory(
         @Query() query: FindCategoryDto
-    ): Promise<CategoryEntity[] | CategoryEntity> {
+    ): Promise<ApiResponse<CategoryEntity[] | CategoryEntity>> {
         const { shop: shopId, text, id: categId, page } = query;
         const categories = categId
             ? await this.productService.getCategoryById(categId)
             : await this.productService.findCategory(text, shopId, page);
 
-        return categories;
+        return {
+            message: "CATEGORIES_FOUND",
+            data: categories,
+        };
+    }
+
+    @Get("category/count")
+    async countProductCategorie() {
+        return await this.productService.countProductByCategory();
     }
 }

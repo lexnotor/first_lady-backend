@@ -1,6 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Equal, FindOneOptions, Repository } from "typeorm";
+import {
+    Equal,
+    FindManyOptions,
+    FindOneOptions,
+    Like,
+    Repository,
+} from "typeorm";
 import { CreateShopDto } from "./shop.dto";
 import { ShopEntity } from "./shop.entity";
 
@@ -42,5 +48,27 @@ export class ShopService {
         }
 
         return shop;
+    }
+
+    async findShop(text: string): Promise<ShopEntity[]> {
+        let shops: ShopEntity[];
+        const filter: FindManyOptions<ShopEntity> = {};
+        filter.where = [{ title: Like(`%${text ?? ""}%`) }];
+        filter.select = {
+            id: true,
+            title: true,
+            profile: true,
+            cover: true,
+            created_at: true,
+        };
+        filter.order = { created_at: "DESC" };
+
+        try {
+            shops = await this.shopRepo.find(filter);
+        } catch (error) {
+            throw new HttpException("NOT_SHOP_FOUND", HttpStatus.NOT_FOUND);
+        }
+
+        return shops;
     }
 }

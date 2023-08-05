@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { JwtModule } from "@nestjs/jwt";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { RoleService } from "./role.service";
 import { UserController } from "./user.controller";
@@ -9,6 +10,7 @@ import {
     UserShopRoleEntity,
 } from "./user.entity";
 import { UserService } from "./user.service";
+import { ConfigModule } from "@nestjs/config";
 
 @Module({
     imports: [
@@ -18,6 +20,8 @@ import { UserService } from "./user.service";
             RoleEntity,
             UserShopRoleEntity,
         ]),
+        JwtModule,
+        ConfigModule,
     ],
     controllers: [UserController],
     providers: [UserService, RoleService],

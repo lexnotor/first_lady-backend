@@ -222,7 +222,7 @@ export class ProductService {
 
     async findCategory(
         text: string,
-        shopId: string,
+        shopId?: string,
         page = 1
     ): Promise<CategoryEntity[]> {
         let categories: CategoryEntity[];
@@ -292,5 +292,24 @@ export class ProductService {
             );
         }
         return productId;
+    }
+
+    async countProductByCategory(): Promise<any> {
+        try {
+            return await this.categoryRepo
+                .createQueryBuilder("categories")
+                .leftJoinAndSelect(
+                    ProductEntity,
+                    "products",
+                    "products.category_id = categories.id"
+                )
+                .groupBy("categories.id ,categories.title")
+                .select("categories.id", "id")
+                .addSelect("categories.title", "title")
+                .addSelect("count(products.id)", "products")
+                .getRawMany();
+        } catch (error) {
+            throw new HttpException("", HttpStatus.SERVICE_UNAVAILABLE);
+        }
     }
 }

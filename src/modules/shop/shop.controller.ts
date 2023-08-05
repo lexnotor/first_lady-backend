@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { User, UserIdentity } from "../auth/auth.decorator";
 import { AuthGuard } from "../auth/auth.guard";
 import { RoleService } from "../user/role.service";
@@ -6,6 +6,7 @@ import { UserService } from "../user/user.service";
 import { CreateShopDto } from "./shop.dto";
 import { ShopEntity } from "./shop.entity";
 import { ShopService } from "./shop.service";
+import { ApiResponse } from "@/index";
 
 @Controller("shop")
 export class ShopController {
@@ -32,5 +33,15 @@ export class ShopController {
         await this.roleService.assignRoleTo(userShop, role);
 
         return shop;
+    }
+
+    @Get()
+    async findShop(
+        @Query("text") text: string
+    ): Promise<ApiResponse<ShopEntity[]>> {
+        return {
+            message: "SHOP_FOUND",
+            data: await this.shopService.findShop(text),
+        };
     }
 }

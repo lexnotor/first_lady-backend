@@ -24,7 +24,7 @@ export class UserController {
         };
     }
 
-    @Get("user/me")
+    @Get("me")
     @UseGuards(AuthGuard)
     async getMe(@User() user: UserIdentity): Promise<ApiResponse<UserEntity>> {
         return {

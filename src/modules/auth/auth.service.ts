@@ -38,7 +38,6 @@ export class AuthService {
             const user = await this.userRepo.findOneOrFail({
                 where: {
                     username: credential,
-                    shops: shopId ? { shop: { id: shopId } } : undefined,
                 },
                 select: {
                     secret: true,
@@ -50,10 +49,10 @@ export class AuthService {
             });
 
             // extract first shop
-            const [currentShop] = shopId ? user.shops || [] : null;
-
-            if (currentShop?.shop?.id != shopId)
-                throw new Error("USER_NOT_MATCH_SHOP");
+            const currentShop = user.shops.find(
+                (item) => item.shop?.id == shopId
+            );
+            if (shopId && !currentShop) throw new Error("USER_NOT_MATCH_SHOP");
 
             if (!compareSync(psw, user.secret))
                 throw new Error("INVALID_PASSWORD");
