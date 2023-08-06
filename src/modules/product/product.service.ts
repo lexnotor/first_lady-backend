@@ -196,7 +196,7 @@ export class ProductService {
             { description: Like(`%${text ?? ""}%`) },
             { title: Like(`%${text ?? ""}%`) },
         ];
-        filter.relations = { shop: true, category: true };
+        filter.relations = { shop: true, category: true, product_v: true };
         filter.select = {
             id: true,
             brand: true,
@@ -205,6 +205,14 @@ export class ProductService {
             created_at: true,
             category: { title: true, id: true },
             shop: { id: true, title: true },
+            product_v: {
+                created_at: true,
+                description: true,
+                id: true,
+                price: true,
+                quantity: true,
+                title: true,
+            },
         };
         filter.order = { created_at: "DESC" };
         filter.skip = (page - 1) * this.pageSize;

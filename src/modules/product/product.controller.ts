@@ -130,7 +130,12 @@ export class ProductController {
     }
 
     @Get("category/count")
-    async countProductCategorie() {
-        return await this.productService.countProductByCategory();
+    async countProductCategorie(): Promise<
+        ApiResponse<{ id: string; title: string; count: string }>
+    > {
+        return {
+            message: "CATEGORY_STAT",
+            data: await this.productService.countProductByCategory(),
+        };
     }
 }
