@@ -34,7 +34,12 @@ export class CartController {
         @User() user: UserIdentity,
         @Body() payload: AddItemDto
     ): Promise<CartProductEntity> {
-        const cart = await this.cartService.getUserCart(user.id);
+        let cart: CartEntity;
+        try {
+            cart = await this.cartService.getUserCart(user.id);
+        } catch (error) {
+            cart = await this.createCart(user.id);
+        }
 
         const product_v = await this.productService.getProductVersionById(
             payload.product_v

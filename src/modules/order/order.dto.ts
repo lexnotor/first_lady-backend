@@ -10,7 +10,6 @@ import {
 import { OrderType } from "./order.entity";
 
 class ResquestOrderDto {
-    @IsNotEmpty()
     @IsArray()
     @ArrayNotEmpty()
     @IsString({ each: true })

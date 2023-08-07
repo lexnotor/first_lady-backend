@@ -39,7 +39,7 @@ export class CartService {
         if (payload.quantity > product_v.quantity)
             throw new Error("OUT_OF_STOCK");
 
-        let cartProduct: CartProductEntity;
+        const cartProduct = new CartProductEntity();
         cartProduct.quantity = payload.quantity;
         cartProduct.cart = cart;
         cartProduct.product_v = product_v;
@@ -116,6 +116,29 @@ export class CartService {
             product: { title: true, id: true, shop: { id: true, title: true } },
             quantity: true,
             product_v: { id: true, title: true },
+        };
+
+        try {
+            product = await this.cartProductRepo.findOneOrFail(filter);
+        } catch (error) {
+            throw new HttpException("ITEM_NOT_FOUND", HttpStatus.NOT_FOUND);
+        }
+        return product;
+    }
+    async getFullItemById(item_id: string): Promise<CartProductEntity> {
+        let product: CartProductEntity;
+        const filter: FindOneOptions<CartProductEntity> = {};
+
+        filter.where = { id: Equal(item_id) };
+        filter.relations = {
+            cart: { user: true },
+            product: { shop: true },
+            product_v: true,
+        };
+        filter.select = {
+            id: true,
+            created_at: true,
+            quantity: true,
         };
 
         try {
