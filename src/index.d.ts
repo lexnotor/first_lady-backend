@@ -70,10 +70,10 @@ export interface CategoryInfo extends DefaultInfo {
     shop?: ShopInfo;
 }
 
-export interface BasketInfo extends DefaultInfo {
+export interface CartInfo extends DefaultInfo {
     user?: UserInfo;
 }
-export interface BasketProductInfo extends DefaultInfo {
+export interface CartProductInfo extends DefaultInfo {
     quantity?: number;
     shop?: ShopInfo;
     product?: ProductInfo;

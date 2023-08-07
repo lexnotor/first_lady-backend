@@ -4,6 +4,7 @@ import { Equal, FindOneOptions, Repository } from "typeorm";
 import { ShopEntity } from "../shop/shop.entity";
 import { CreateUserDto, UpdateUserDto } from "./user.dto";
 import { UserEntity, UserShopEntity } from "./user.entity";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 @Injectable()
 export class UserService {
@@ -11,7 +12,8 @@ export class UserService {
         @InjectRepository(UserEntity)
         private readonly userRepo: Repository<UserEntity>,
         @InjectRepository(UserShopEntity)
-        private readonly userShopRepo: Repository<UserShopEntity>
+        private readonly userShopRepo: Repository<UserShopEntity>,
+        private readonly eventEmitter: EventEmitter2
     ) {}
 
     hashPwd(secret: string): string {
@@ -41,6 +43,8 @@ export class UserService {
                 HttpStatus.BAD_REQUEST
             );
         }
+
+        this.eventEmitter.emit("create_cart", user.id);
 
         return user;
     }

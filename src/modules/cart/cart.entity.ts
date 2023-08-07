@@ -11,15 +11,15 @@ import { ProductEntity, ProductVersionEntity } from "../product/product.entity";
 import { ShopEntity } from "../shop/shop.entity";
 import { UserEntity } from "../user/user.entity";
 
-@Entity("baskets")
-class BasketEntity extends DefaultEntity {
+@Entity("carts")
+class CartEntity extends DefaultEntity {
     @OneToOne(() => UserEntity)
     @JoinColumn({ name: "user_id" })
     user: Relation<UserEntity>;
 }
 
-@Entity("basket_products")
-class BasketProductEntity extends DefaultEntity {
+@Entity("cart_products")
+class CartProductEntity extends DefaultEntity {
     @Column({ default: 0, nullable: false })
     quantity: number;
 
@@ -35,9 +35,9 @@ class BasketProductEntity extends DefaultEntity {
     @JoinColumn({ name: "product_v_id" })
     product_v: Relation<ProductVersionEntity>;
 
-    @ManyToOne(() => BasketEntity)
-    @JoinColumn({ name: "basket_id" })
-    basket: Relation<BasketEntity>;
+    @ManyToOne(() => CartEntity)
+    @JoinColumn({ name: "cart_id" })
+    cart: Relation<CartEntity>;
 }
 
-export { BasketEntity, BasketProductEntity };
+export { CartEntity, CartProductEntity };
