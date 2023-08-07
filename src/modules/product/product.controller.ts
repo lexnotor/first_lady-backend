@@ -138,4 +138,11 @@ export class ProductController {
             data: await this.productService.countProductByCategory(),
         };
     }
+
+    @Get("stats")
+    async getProductStats(): Promise<ApiResponse> {
+        const stat = await this.productService.loadProductStat();
+
+        return { message: "STAT_FOUND", data: stat };
+    }
 }

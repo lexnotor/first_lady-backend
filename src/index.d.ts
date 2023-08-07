@@ -79,3 +79,14 @@ export interface BasketProductInfo extends DefaultInfo {
     product?: ProductInfo;
     product_v?: ProductVersionInfo;
 }
+
+export interface ProductStats {
+    total_product: number;
+    total_variant: number;
+    total_category: number;
+    product_without_category: number;
+    product_out_of_stock: number;
+    total_order: number;
+    total_insitu: number;
+    total_delivery: number;
+}

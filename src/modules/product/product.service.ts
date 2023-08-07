@@ -6,6 +6,8 @@ import {
     Equal,
     FindManyOptions,
     FindOneOptions,
+    IsNull,
+    LessThanOrEqual,
     Like,
     Repository,
 } from "typeorm";
@@ -319,5 +321,25 @@ export class ProductService {
         } catch (error) {
             throw new HttpException("", HttpStatus.SERVICE_UNAVAILABLE);
         }
+    }
+
+    async loadProductStat() {
+        const stat = {
+            total_product: await this.productRepo.count(),
+            total_variant: await this.product_vRepo.count(),
+            total_category: await this.categoryRepo.count(),
+            product_without_category: await this.productRepo.count({
+                where: { category: IsNull() },
+            }),
+
+            product_out_of_stock: await this.product_vRepo.count({
+                where: { quantity: LessThanOrEqual(0) },
+            }),
+            total_order: 0,
+            total_insitu: 0,
+            total_delivery: 0,
+        };
+
+        return stat;
     }
 }
