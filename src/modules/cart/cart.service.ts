@@ -106,14 +106,14 @@ export class CartService {
         filter.where = { id: Equal(item_id) };
         filter.relations = {
             cart: { user: true },
-            product: true,
+            product: { shop: true },
             product_v: true,
         };
         filter.select = {
             id: true,
             cart: { user: { id: true } },
             created_at: true,
-            product: { title: true, id: true },
+            product: { title: true, id: true, shop: { id: true, title: true } },
             quantity: true,
             product_v: { id: true, title: true },
         };
