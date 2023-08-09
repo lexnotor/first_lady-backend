@@ -1,8 +1,21 @@
-import { Controller, HttpCode } from "@nestjs/common";
+import {
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    HttpException,
+    HttpStatus,
+    Param,
+    UseGuards,
+} from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { CartService } from "../cart/cart.service";
 import { UserService } from "../user/user.service";
 import { OrderService } from "./order.service";
+import { AuthGuard } from "../auth/auth.guard";
+import { User, UserIdentity } from "../auth/auth.decorator";
+import { ApiResponse } from "@/index";
+import { OrderEntity } from "./order.entity";
 
 @Controller("order")
 export class OrderController {
@@ -35,5 +48,33 @@ export class OrderController {
         );
 
         return true;
+    }
+
+    @Get("mine")
+    @UseGuards(AuthGuard)
+    async getMyOrder(
+        @User() user: UserIdentity
+    ): Promise<ApiResponse<OrderEntity[]>> {
+        return {
+            message: "FIND_USER_ORDERS",
+            data: await this.orderService.getUserOrders(user.id),
+        };
+    }
+
+    @Delete(":id")
+    @UseGuards(AuthGuard)
+    async deleteOrder(
+        @Param("id") orderId: string,
+        @User() user: UserIdentity
+    ): Promise<ApiResponse<string>> {
+        const order = await this.orderService.getOrderById(orderId);
+
+        if (order.user.id != user.id)
+            throw new HttpException("NOT_YOUR_ORDER", HttpStatus.CONFLICT);
+
+        return {
+            message: "ORDER_DELETED",
+            data: await this.orderService.deleteOrder(order.id),
+        };
     }
 }
