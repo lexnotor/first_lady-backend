@@ -61,6 +61,14 @@ export class OrderController {
         };
     }
 
+    @Get()
+    async findOrders(): Promise<ApiResponse<OrderEntity[]>> {
+        return {
+            message: "ORDERS_FOUND",
+            data: await this.orderService.getOrderAllOrders(),
+        };
+    }
+
     @Delete(":id")
     @UseGuards(AuthGuard)
     async deleteOrder(

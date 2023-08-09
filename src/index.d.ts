@@ -90,3 +90,36 @@ export interface ProductStats {
     total_insitu: number;
     total_delivery: number;
 }
+
+export interface CategoryStats {
+    id: string;
+    products: string;
+    title: string;
+}
+
+enum OrderType {
+    INSITU = "INSITU",
+    DELIVERY = "DELIVERY",
+}
+enum OrderState {
+    DONE = "DONE",
+    PENDING = "PENDING",
+    ERROR = "ERROR",
+}
+export interface OrderInfo extends DefaultInfo {
+    type: OrderType;
+    address: string;
+    date: Date;
+    paid: boolean;
+    state: OrderState;
+    user: UserInfo;
+    shop: ShopInfo;
+    products: OrderProductInfo[];
+}
+
+export interface OrderProductInfo extends DefaultInfo {
+    order: OrderInfo;
+    product_v: ProductVersionInfo;
+    product: ProductInfo;
+    quantity: number;
+}
