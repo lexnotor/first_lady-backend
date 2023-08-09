@@ -9,7 +9,6 @@ import {
     OrderProductEntity,
     OrderState,
     OrderType,
-    PaiementEntity,
 } from "./order.entity";
 
 @Injectable()
@@ -18,9 +17,7 @@ export class OrderService {
         @InjectRepository(OrderEntity)
         private readonly orderRepo: Repository<OrderEntity>,
         @InjectRepository(OrderProductEntity)
-        private readonly orderProductRepo: Repository<OrderProductEntity>,
-        @InjectRepository(PaiementEntity)
-        private readonly paiementRepo: Repository<PaiementEntity>
+        private readonly orderProductRepo: Repository<OrderProductEntity>
     ) {}
 
     async addOrder(

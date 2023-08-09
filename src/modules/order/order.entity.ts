@@ -53,12 +53,15 @@ class OrderEntity extends DefaultEntity {
 @Entity("order_products")
 class OrderProductEntity extends DefaultEntity {
     @ManyToOne(() => OrderEntity)
+    @JoinColumn({ name: "oreder_id" })
     order: Relation<OrderEntity>;
 
     @ManyToOne(() => ProductVersionEntity)
+    @JoinColumn({ name: "product_v_id" })
     product_v: Relation<ProductVersionEntity>;
 
     @ManyToOne(() => ProductEntity)
+    @JoinColumn({ name: "product_id" })
     product: Relation<ProductEntity>;
 
     @Column()

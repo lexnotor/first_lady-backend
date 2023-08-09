@@ -118,10 +118,9 @@ export class PaymentController {
 
             this.paymentService.confirmPaiement(session_id, allData);
 
-            const items_id = await Promise.all(
-                allData.line_items.data.map(
-                    (item) => item.price.metadata.item_id
-                )
+            const items_id = allData.line_items.data.map(
+                (item) =>
+                    (item.price.product as Stripe.Product).metadata.item_id
             );
 
             const user_id = allData.client_reference_id;
