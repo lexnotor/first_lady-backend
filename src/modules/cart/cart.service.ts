@@ -125,6 +125,7 @@ export class CartService {
         }
         return product;
     }
+
     async getFullItemById(item_id: string): Promise<CartProductEntity> {
         let product: CartProductEntity;
         const filter: FindOneOptions<CartProductEntity> = {};
@@ -134,6 +135,7 @@ export class CartService {
             cart: { user: true },
             product: { shop: true },
             product_v: true,
+            shop: true,
         };
         filter.select = {
             id: true,

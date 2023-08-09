@@ -54,7 +54,7 @@ export class CartController {
         return await this.cartService.getItemById(item.id);
     }
 
-    @Get("item")
+    @Get("item/mine")
     @UseGuards(AuthGuard)
     async getMyItem(@User() user: UserIdentity): Promise<CartProductEntity[]> {
         const cart = await this.cartService.getUserCart(user.id);

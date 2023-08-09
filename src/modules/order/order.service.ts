@@ -9,6 +9,7 @@ import {
     OrderProductEntity,
     OrderState,
     OrderType,
+    PaiementEntity,
 } from "./order.entity";
 
 @Injectable()
@@ -17,7 +18,9 @@ export class OrderService {
         @InjectRepository(OrderEntity)
         private readonly orderRepo: Repository<OrderEntity>,
         @InjectRepository(OrderProductEntity)
-        private readonly orderProductRepo: Repository<OrderProductEntity>
+        private readonly orderProductRepo: Repository<OrderProductEntity>,
+        @InjectRepository(PaiementEntity)
+        private readonly paiementRepo: Repository<PaiementEntity>
     ) {}
 
     async addOrder(
@@ -29,9 +32,10 @@ export class OrderService {
         const order = new OrderEntity();
         order.shop = shop;
         order.paid = true;
+        order.state = OrderState.PENDING;
         order.address = "";
         order.date = new Date();
-        order.type = type;
+        order.type = type ?? OrderType.DELIVERY;
         order.user = user;
 
         try {

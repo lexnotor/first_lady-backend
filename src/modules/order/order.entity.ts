@@ -65,4 +65,34 @@ class OrderProductEntity extends DefaultEntity {
     quantity: number;
 }
 
-export { OrderEntity, OrderProductEntity, OrderType, OrderState };
+@Entity("paiements")
+class PaiementEntity extends DefaultEntity {
+    @Column()
+    session_id: string;
+
+    @Column("json")
+    session_data: object;
+
+    @Column("json", { nullable: true, default: null })
+    paiement_data: object;
+
+    @Column("json")
+    order_data: object;
+
+    @Column({ default: "STRIPE" })
+    type: "STRIPE";
+
+    @Column()
+    status: string;
+
+    @Column()
+    user: string;
+}
+
+export {
+    OrderEntity,
+    OrderProductEntity,
+    OrderType,
+    OrderState,
+    PaiementEntity,
+};
