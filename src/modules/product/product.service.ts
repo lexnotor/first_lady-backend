@@ -6,6 +6,7 @@ import {
     Equal,
     FindManyOptions,
     FindOneOptions,
+    ILike,
     IsNull,
     LessThanOrEqual,
     Like,
@@ -194,9 +195,9 @@ export class ProductService {
         const filter: FindManyOptions<ProductEntity> = {};
 
         filter.where = [
-            { brand: Like(`%${text ?? ""}%`) },
-            { description: Like(`%${text ?? ""}%`) },
-            { title: Like(`%${text ?? ""}%`) },
+            { brand: ILike(`%${text ?? ""}%`) },
+            { description: ILike(`%${text ?? ""}%`) },
+            { title: ILike(`%${text ?? ""}%`) },
         ];
         filter.relations = { shop: true, category: true, product_v: true };
         filter.select = {

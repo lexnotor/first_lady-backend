@@ -31,4 +31,12 @@ class ResquestOrderDto {
     address = "";
 }
 
-export { ResquestOrderDto };
+class SaveLocalOrderDto {
+    @IsArray()
+    @ArrayNotEmpty()
+    @IsString({ each: true })
+    @IsUUID(undefined, { each: true })
+    items_id: string[];
+}
+
+export { ResquestOrderDto, SaveLocalOrderDto };

@@ -1,4 +1,5 @@
 import {
+    Body,
     Controller,
     Delete,
     Get,
@@ -6,6 +7,7 @@ import {
     HttpException,
     HttpStatus,
     Param,
+    Post,
     UseGuards,
 } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
@@ -16,6 +18,7 @@ import { AuthGuard } from "../auth/auth.guard";
 import { User, UserIdentity } from "../auth/auth.decorator";
 import { ApiResponse } from "@/index";
 import { OrderEntity } from "./order.entity";
+import { SaveLocalOrderDto } from "./order.dto";
 
 @Controller("order")
 export class OrderController {
@@ -40,6 +43,30 @@ export class OrderController {
 
         const shop = items[0].shop;
         const user = await this.userSerivce.getUserById(user_id);
+
+        await this.orderService.addOrder(user, undefined, shop, ...items);
+
+        await Promise.all(
+            items.map((item) => this.cartService.deleteItem(item.id))
+        );
+
+        return true;
+    }
+
+    @Post("local")
+    @UseGuards(AuthGuard)
+    async saveLocalOrder(
+        @Body() payload: SaveLocalOrderDto,
+        @User() user_: UserIdentity
+    ) {
+        const items = await Promise.all(
+            payload.items_id.map((item) =>
+                this.cartService.getFullItemById(item)
+            )
+        );
+
+        const shop = items[0].shop;
+        const user = await this.userSerivce.getUserById(user_.id);
 
         await this.orderService.addOrder(user, undefined, shop, ...items);
 

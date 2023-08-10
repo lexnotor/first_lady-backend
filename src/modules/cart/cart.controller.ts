@@ -1,3 +1,4 @@
+import { ApiResponse } from "@/index";
 import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { User, UserIdentity } from "../auth/auth.decorator";
@@ -33,7 +34,7 @@ export class CartController {
     async addItem(
         @User() user: UserIdentity,
         @Body() payload: AddItemDto
-    ): Promise<CartProductEntity> {
+    ): Promise<ApiResponse<CartProductEntity>> {
         let cart: CartEntity;
         try {
             cart = await this.cartService.getUserCart(user.id);
@@ -51,15 +52,23 @@ export class CartController {
             product_v
         );
 
-        return await this.cartService.getItemById(item.id);
+        return {
+            message: "ITEM_ADDED",
+            data: await this.cartService.getItemById(item.id),
+        };
     }
 
     @Get("item/mine")
     @UseGuards(AuthGuard)
-    async getMyItem(@User() user: UserIdentity): Promise<CartProductEntity[]> {
+    async getMyItem(
+        @User() user: UserIdentity
+    ): Promise<ApiResponse<CartProductEntity[]>> {
         const cart = await this.cartService.getUserCart(user.id);
         const items = await this.cartService.getCartItems(cart.id);
 
-        return items;
+        return {
+            message: "USER_CART",
+            data: items,
+        };
     }
 }
