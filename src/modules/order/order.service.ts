@@ -150,4 +150,26 @@ export class OrderService {
 
         return orderId;
     }
+
+    async loadProductStat() {
+        const stat = {
+            total_order: await this.orderRepo.count(),
+            order_insitu: await this.orderRepo.count({
+                where: { type: OrderType.INSITU },
+            }),
+            order_delivery: await this.orderRepo.count({
+                where: { type: OrderType.DELIVERY },
+            }),
+            order_cancel: await this.orderRepo.count({
+                where: { state: OrderState.ERROR },
+            }),
+            order_done: await this.orderRepo.count({
+                where: { state: OrderState.DONE },
+            }),
+            order_pending: await this.orderRepo.count({
+                where: { state: OrderState.PENDING },
+            }),
+        };
+        return stat;
+    }
 }

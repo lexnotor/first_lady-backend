@@ -1,3 +1,4 @@
+import { ApiResponse } from "@/index";
 import {
     Body,
     Controller,
@@ -12,14 +13,13 @@ import {
     UseGuards,
 } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
+import { User, UserIdentity } from "../auth/auth.decorator";
+import { AuthGuard } from "../auth/auth.guard";
 import { CartService } from "../cart/cart.service";
 import { UserService } from "../user/user.service";
-import { OrderService } from "./order.service";
-import { AuthGuard } from "../auth/auth.guard";
-import { User, UserIdentity } from "../auth/auth.decorator";
-import { ApiResponse } from "@/index";
-import { OrderEntity, OrderState, OrderType } from "./order.entity";
 import { SaveLocalOrderDto } from "./order.dto";
+import { OrderEntity, OrderState, OrderType } from "./order.entity";
+import { OrderService } from "./order.service";
 
 @Controller("order")
 export class OrderController {
@@ -99,6 +99,14 @@ export class OrderController {
         return {
             message: "FIND_USER_ORDERS",
             data: await this.orderService.getUserOrders(user.id),
+        };
+    }
+
+    @Get("stats")
+    async getOrderStats(): Promise<ApiResponse> {
+        return {
+            message: "ORDER_STATS",
+            data: await this.orderService.loadProductStat(),
         };
     }
 
