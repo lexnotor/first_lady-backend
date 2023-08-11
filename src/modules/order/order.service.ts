@@ -106,7 +106,7 @@ export class OrderService {
         filter.relations = { shop: true, products: true, user: true };
 
         try {
-            orders = await this.orderRepo.find();
+            orders = await this.orderRepo.find(filter);
         } catch (error) {
             throw new HttpException(
                 "NO_ORDER_FOUND",

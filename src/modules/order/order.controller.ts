@@ -8,6 +8,7 @@ import {
     HttpStatus,
     Param,
     Post,
+    Put,
     UseGuards,
 } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
@@ -17,7 +18,7 @@ import { OrderService } from "./order.service";
 import { AuthGuard } from "../auth/auth.guard";
 import { User, UserIdentity } from "../auth/auth.decorator";
 import { ApiResponse } from "@/index";
-import { OrderEntity } from "./order.entity";
+import { OrderEntity, OrderState, OrderType } from "./order.entity";
 import { SaveLocalOrderDto } from "./order.dto";
 
 @Controller("order")
@@ -57,8 +58,8 @@ export class OrderController {
     @UseGuards(AuthGuard)
     async saveLocalOrder(
         @Body() payload: SaveLocalOrderDto,
-        @User() user_: UserIdentity
-    ) {
+        @User() { id: UserId }: UserIdentity
+    ): Promise<ApiResponse<OrderEntity>> {
         const items = await Promise.all(
             payload.items_id.map((item) =>
                 this.cartService.getFullItemById(item)
@@ -66,15 +67,28 @@ export class OrderController {
         );
 
         const shop = items[0].shop;
-        const user = await this.userSerivce.getUserById(user_.id);
+        const user = await this.userSerivce.getUserById(UserId);
 
-        await this.orderService.addOrder(user, undefined, shop, ...items);
+        let order = await this.orderService.addOrder(
+            user,
+            OrderType.INSITU,
+            shop,
+            ...items
+        );
 
         await Promise.all(
             items.map((item) => this.cartService.deleteItem(item.id))
         );
 
-        return true;
+        order = await this.orderService.changeOrderStatus(
+            order.id,
+            OrderState.DONE
+        );
+
+        return {
+            message: "ORDER_ADDED",
+            data: order,
+        };
     }
 
     @Get("mine")
@@ -93,6 +107,31 @@ export class OrderController {
         return {
             message: "ORDERS_FOUND",
             data: await this.orderService.getOrderAllOrders(),
+        };
+    }
+
+    @Put("cancel/:id")
+    async cancelOrder(
+        @Param() orderId: string
+    ): Promise<ApiResponse<OrderEntity>> {
+        return {
+            message: "ORDERS_CANCEL",
+            data: await this.orderService.changeOrderStatus(
+                orderId,
+                OrderState.ERROR
+            ),
+        };
+    }
+    @Put("done/:id")
+    async finishOrder(
+        @Param() orderId: string
+    ): Promise<ApiResponse<OrderEntity>> {
+        return {
+            message: "ORDERS_DONE",
+            data: await this.orderService.changeOrderStatus(
+                orderId,
+                OrderState.DONE
+            ),
         };
     }
 
