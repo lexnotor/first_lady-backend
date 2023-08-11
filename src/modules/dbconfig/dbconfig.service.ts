@@ -16,8 +16,9 @@ export class DbconfigService implements TypeOrmOptionsFactory {
             password: this.configService.get<string>("DB_SECRET"),
             autoLoadEntities: true,
             entities: [__dirname + "/**/*.entity.ts"],
-            synchronize:
-                this.configService.get<string>("NODE_ENV") != "production",
+            synchronize: true,
         };
     }
 }
+
+//this.configService.get<string>("NODE_ENV") != "production"
