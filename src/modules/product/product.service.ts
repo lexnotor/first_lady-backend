@@ -198,6 +198,7 @@ export class ProductService {
             { brand: ILike(`%${text ?? ""}%`) },
             { description: ILike(`%${text ?? ""}%`) },
             { title: ILike(`%${text ?? ""}%`) },
+            { category: { title: ILike(`%${text ?? ""}%`) } },
         ];
         filter.relations = { shop: true, category: true, product_v: true };
         filter.select = {
