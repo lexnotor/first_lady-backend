@@ -44,4 +44,12 @@ export class ShopController {
             data: await this.shopService.findShop(text),
         };
     }
+
+    @Get()
+    async loadShopStats(): Promise<ApiResponse> {
+        return {
+            message: "",
+            data: this.shopService.loadShopStat(),
+        };
+    }
 }

@@ -10,6 +10,7 @@ import {
     Param,
     Post,
     Put,
+    Query,
     UseGuards,
 } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
@@ -103,10 +104,10 @@ export class OrderController {
     }
 
     @Get("stats")
-    async getOrderStats(): Promise<ApiResponse> {
+    async getOrderStats(@Query("year") year: number): Promise<ApiResponse> {
         return {
             message: "ORDER_STATS",
-            data: await this.orderService.loadProductStat(),
+            data: await this.orderService.loadProductStat(year),
         };
     }
 

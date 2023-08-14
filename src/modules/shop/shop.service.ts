@@ -71,4 +71,10 @@ export class ShopService {
 
         return shops;
     }
+
+    async loadShopStat() {
+        const stats = {};
+
+        return stats;
+    }
 }

@@ -151,25 +151,50 @@ export class OrderService {
         return orderId;
     }
 
-    async loadProductStat() {
-        const stat = {
-            total_order: await this.orderRepo.count(),
-            order_insitu: await this.orderRepo.count({
-                where: { type: OrderType.INSITU },
-            }),
-            order_delivery: await this.orderRepo.count({
-                where: { type: OrderType.DELIVERY },
-            }),
-            order_cancel: await this.orderRepo.count({
-                where: { state: OrderState.ERROR },
-            }),
-            order_done: await this.orderRepo.count({
-                where: { state: OrderState.DONE },
-            }),
-            order_pending: await this.orderRepo.count({
-                where: { state: OrderState.PENDING },
-            }),
-        };
-        return stat;
+    async loadProductStat(year?: number) {
+        if (!year)
+            return {
+                total_order: await this.orderRepo.count(),
+                order_insitu: await this.orderRepo.count({
+                    where: { type: OrderType.INSITU },
+                }),
+                order_delivery: await this.orderRepo.count({
+                    where: { type: OrderType.DELIVERY },
+                }),
+                order_cancel: await this.orderRepo.count({
+                    where: { state: OrderState.ERROR },
+                }),
+                order_done: await this.orderRepo.count({
+                    where: { state: OrderState.DONE },
+                }),
+                order_pending: await this.orderRepo.count({
+                    where: { state: OrderState.PENDING },
+                }),
+            };
+        else {
+            const results: OrderStats[] = await this.orderRepo
+                .createQueryBuilder("orders")
+                .groupBy("month")
+                .where("date BETWEEN :start AND :end", {
+                    start: new Date(year, 0, 1),
+                    end: new Date(year, 11, 31),
+                })
+                .select("date_part('month', date)", "month")
+                .addSelect("count(orders.id)", "nbr")
+                .getRawMany();
+
+            const stats: OrderStats[] = [];
+            for (let i = 0; i < 12; i++)
+                stats.push(
+                    results.find((item) => item.month == i) ?? {
+                        month: i,
+                        nbr: 0,
+                    }
+                );
+
+            return stats;
+        }
     }
 }
+
+type OrderStats = { month: number; nbr: string | number };
