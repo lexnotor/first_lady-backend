@@ -176,4 +176,11 @@ export class UserService {
         }
         return userId;
     }
+
+    async loadUserStat() {
+        const stats = {
+            total_user: await this.userRepo.count(),
+        };
+        return stats;
+    }
 }

@@ -32,4 +32,12 @@ export class UserController {
             data: await this.userService.getUserById(user.id),
         };
     }
+
+    @Get("stats")
+    async loadUserStats(): Promise<ApiResponse> {
+        return {
+            message: "USER_STATS",
+            data: await this.userService.loadUserStat(),
+        };
+    }
 }
