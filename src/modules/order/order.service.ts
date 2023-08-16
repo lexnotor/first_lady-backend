@@ -100,6 +100,23 @@ export class OrderService {
         return orders;
     }
 
+    async getProductOrder(orderId: string): Promise<OrderProductEntity[]> {
+        let orderProduct: OrderProductEntity[];
+        const filter: FindOneOptions<OrderEntity> = {};
+        filter.where = { id: Equal(orderId) };
+        filter.relations = { products: { product: true, product_v: true } };
+        filter.withDeleted = true;
+
+        try {
+            const order = await this.orderRepo.findOne(filter);
+            orderProduct = order.products;
+        } catch (error) {
+            throw new HttpException("ORDER_NOT_FOUND", HttpStatus.NOT_FOUND);
+        }
+
+        return orderProduct;
+    }
+
     async getOrderAllOrders(): Promise<OrderEntity[]> {
         let orders: OrderEntity[];
         const filter: FindManyOptions<OrderEntity> = {};
