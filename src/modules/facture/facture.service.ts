@@ -1,20 +1,13 @@
-import { Injectable, StreamableFile } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import puppeteer, { Browser } from "puppeteer";
-import { Repository } from "typeorm";
-import { OrderService } from "../order/order.service";
-import { ProductVersionEntity } from "../product/product.entity";
-import * as path from "path";
+import { Injectable, OnModuleDestroy, StreamableFile } from "@nestjs/common";
 import * as ejs from "ejs";
+import * as path from "path";
+import puppeteer, { Browser } from "puppeteer";
+import { OrderService } from "../order/order.service";
 
 @Injectable()
-export class FactureService {
+export class FactureService implements OnModuleDestroy {
     browser: Browser;
-    constructor(
-        private readonly orderService: OrderService,
-        @InjectRepository(ProductVersionEntity)
-        private productVersionRepo: Repository<ProductVersionEntity>
-    ) {
+    constructor(private readonly orderService: OrderService) {
         this.initBrowser();
     }
 
@@ -32,6 +25,10 @@ export class FactureService {
         page.close();
 
         return new StreamableFile(pdf, { type: "application/pdf" });
+    }
+
+    async onModuleDestroy() {
+        await this.browser.close();
     }
 
     async getOrderFacture(id: string) {
