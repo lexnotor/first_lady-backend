@@ -1,6 +1,6 @@
 import { Injectable, StreamableFile } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import puppeteer from "puppeteer";
+import puppeteer, { Browser } from "puppeteer";
 import { Repository } from "typeorm";
 import { OrderService } from "../order/order.service";
 import { ProductVersionEntity } from "../product/product.entity";
@@ -9,25 +9,29 @@ import * as ejs from "ejs";
 
 @Injectable()
 export class FactureService {
+    browser: Browser;
     constructor(
         private readonly orderService: OrderService,
         @InjectRepository(ProductVersionEntity)
         private productVersionRepo: Repository<ProductVersionEntity>
-    ) {}
+    ) {
+        this.initBrowser();
+    }
+
+    private async initBrowser() {
+        this.browser = await puppeteer.launch({ headless: "new" });
+    }
 
     async getPDFStream(html: string) {
-        const browser = await puppeteer.launch();
-        const page = await browser.newPage();
-
-        await page.setViewport({ height: 300, width: 200 });
+        const page = await this.browser.newPage();
 
         await page.setContent(html);
 
-        const pdf = await page.pdf();
+        const pdf = await page.pdf({ width: 500, height: 700 });
 
-        await browser.close();
+        page.close();
 
-        return new StreamableFile(pdf);
+        return new StreamableFile(pdf, { type: "application/pdf" });
     }
 
     async getOrderFacture(id: string) {
@@ -35,7 +39,7 @@ export class FactureService {
 
         const products = await this.orderService.getProductOrder(id);
 
-        const html = ejs.renderFile(
+        const html = await ejs.renderFile(
             path.resolve("src/modules/facture/facture.template.ejs"),
             {
                 order,
@@ -43,6 +47,6 @@ export class FactureService {
             }
         );
 
-        return html;
+        return await this.getPDFStream(html);
     }
 }

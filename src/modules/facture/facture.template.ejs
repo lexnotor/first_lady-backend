@@ -8,16 +8,81 @@
             * {
                 font-family: "Courier New", Courier, monospace;
             }
+            html {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            body {
+                font-size: 11px;
+                color: #353535;
+            }
+            table,
+            th,
+            td {
+                border: 1px solid #13a185;
+                border-collapse: collapse;
+            }
+            thead tr {
+                background-color: #13a185;
+                color: white;
+            }
+            table {
+                width: 100%;
+            }
+            th,
+            td {
+                text-align: left;
+                padding: 0.2rem 0.7rem;
+            }
+            hr {
+                border-top: 2px solid #303030;
+                padding: 0;
+                border-radius: 4px;
+            }
         </style>
     </head>
     <body>
-        <h1><%= order.shop.title %></h1>
+        <h2>SHOP: <%= order.shop.title %></h2>
         <hr />
-        <h2><%= new Date(order.date).toString() %></h2>
+        <p>
+            Date :<%= new Date(order.date).toDateString() %> - <%= new
+            Date(order.date).toLocaleTimeString() %>
+        </p>
         <hr />
-        <ul>
-            <% products.forEach(item => { %> <%= item.product.title %> <%=
-            item.product_v.title %> <% }); %>
-        </ul>
+        <ul></ul>
+        <table>
+            <thead>
+                <tr>
+                    <th>DESIGNATION</th>
+                    <th>QTÉ</th>
+                    <th>PRIX UNITAIRE</th>
+                    <th>MONTANT</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% products.forEach(item => { %>
+                <tr>
+                    <td>
+                        <%= item.product.title %> (<%= item.product_v.title %>)
+                    </td>
+                    <td><%= item.quantity %></td>
+                    <td><%= item.product_v.price %> $</td>
+                    <td style="text-align: right">
+                        <%= item.product_v.price * item.quantity %> $
+                    </td>
+                </tr>
+
+                <% }); %>
+                <tr>
+                    <td>Total</td>
+                    <td colspan="3" style="text-align: right">
+                        <%=
+                        products.reduce((prev,cur)=>prev+(cur.product_v.price *
+                        cur.quantity),0) %> $
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <script></script>
     </body>
 </html>
