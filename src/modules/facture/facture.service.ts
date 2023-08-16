@@ -3,15 +3,24 @@ import * as ejs from "ejs";
 import * as path from "path";
 import puppeteer, { Browser } from "puppeteer";
 import { OrderService } from "../order/order.service";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class FactureService implements OnModuleDestroy {
+    isInProduction: boolean;
     browser: Browser;
-    constructor(private readonly orderService: OrderService) {
+    constructor(
+        private readonly orderService: OrderService,
+        private readonly configService: ConfigService
+    ) {
+        this.isInProduction =
+            this.configService.get<string>("NODE_ENV") == "production";
         this.initBrowser();
     }
 
-    private async initBrowser() {
+    async initBrowser() {
+        if (this.isInProduction) return;
+
         this.browser = await puppeteer.launch({ headless: "new" });
     }
 
@@ -28,7 +37,7 @@ export class FactureService implements OnModuleDestroy {
     }
 
     async onModuleDestroy() {
-        await this.browser.close();
+        this.browser && (await this.browser.close());
     }
 
     async getOrderFacture(id: string) {
@@ -44,6 +53,6 @@ export class FactureService implements OnModuleDestroy {
             }
         );
 
-        return await this.getPDFStream(html);
+        return this.isInProduction ? html : await this.getPDFStream(html);
     }
 }
