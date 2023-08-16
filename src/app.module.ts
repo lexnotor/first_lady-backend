@@ -10,6 +10,7 @@ import { ProductModule } from "./modules/product/product.module";
 import { ShopModule } from "./modules/shop/shop.module";
 import { UserModule } from "./modules/user/user.module";
 import { PaymentModule } from "./modules/payment/payment.module";
+import { FactureModule } from "./modules/facture/facture.module";
 
 @Module({
     imports: [
@@ -26,6 +27,7 @@ import { PaymentModule } from "./modules/payment/payment.module";
         CartModule,
         OrderModule,
         PaymentModule,
+        FactureModule,
     ],
     controllers: [],
     providers: [],
