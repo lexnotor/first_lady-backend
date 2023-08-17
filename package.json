@@ -33,7 +33,6 @@
         "class-validator": "^0.14.0",
         "ejs": "^3.1.9",
         "pg": "^8.11.1",
-        "puppeteer": "^21.0.3",
         "reflect-metadata": "^0.1.13",
         "rxjs": "^7.2.0",
         "stripe": "^12.17.0",

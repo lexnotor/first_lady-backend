@@ -1,88 +1,83 @@
-<!DOCTYPE html>
-<html lang="fr">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Facture <%= order.id %></title>
-        <style>
-            * {
-                font-family: "Courier New", Courier, monospace;
-            }
-            html {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            body {
-                font-size: 11px;
-                color: #353535;
-            }
-            table,
-            th,
-            td {
-                border: 1px solid #13a185;
-                border-collapse: collapse;
-            }
-            thead tr {
-                background-color: #13a185;
-                color: white;
-            }
-            table {
-                width: 100%;
-            }
-            th,
-            td {
-                text-align: left;
-                padding: 0.2rem 0.7rem;
-            }
-            hr {
-                border-top: 2px solid #303030;
-                padding: 0;
-                border-radius: 4px;
-            }
-        </style>
-    </head>
-    <body>
-        <h2>SHOP: <%= order.shop.title %></h2>
-        <hr />
-        <p>
-            Date :<%= new Date(order.date).toDateString() %> - <%= new
-            Date(order.date).toLocaleTimeString() %>
-        </p>
-        <hr />
-        <ul></ul>
-        <table>
-            <thead>
-                <tr>
-                    <th>DESIGNATION</th>
-                    <th>QTÉ</th>
-                    <th>PRIX UNITAIRE</th>
-                    <th>MONTANT</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% products.forEach(item => { %>
-                <tr>
-                    <td>
-                        <%= item.product.title %> (<%= item.product_v.title %>)
-                    </td>
-                    <td><%= item.quantity %></td>
-                    <td><%= item.product_v.price %> $</td>
-                    <td style="text-align: right">
-                        <%= item.product_v.price * item.quantity %> $
-                    </td>
-                </tr>
+<div id="pdf_render">
+    <style>
+        #pdf_render * {
+            font-family: "Courier New", Courier, monospace !important;
+            padding: 0;
+            margin: 0;
+        }
+        #pdf_render {
+            font-size: 11px !important;
+            color: #000000 !important;
+        }
+        /* #pdf_render html {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        } */
+        /* #pdf_render table, */
+        #pdf_render th,
+        #pdf_render td {
+            border-bottom: 0.5px solid #13a185 !important;
+            border-collapse: collapse !important;
+        }
+        #pdf_render thead tr {
+            background-color: #13a185 !important;
+            color: white !important;
+        }
+        #pdf_render table {
+            width: 100% !important;
+            margin-top: 2rem;
+        }
+        #pdf_render th,
+        #pdf_render td {
+            text-align: left !important;
+            padding: 0rem 0rem 1rem 1rem !important;
+            padding-top: -10px;
+        }
+    </style>
+    <h2>SHOP: <%= order.shop.title %></h2>
+    <p>
+        Date :<%= new Date(order.date).toDateString() %> - <%= new
+        Date(order.date).toLocaleTimeString() %>
+    </p>
+    <ul></ul>
+    <table>
+        <thead>
+            <tr>
+                <th>DESIGNATION</th>
+                <th>QTÉ</th>
+                <th>PRIX UNITAIRE</th>
+                <th>MONTANT</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% products.forEach(item => { %>
+            <tr>
+                <td><%= item.product.title %> (<%= item.product_v.title %>)</td>
+                <td><%= item.quantity %></td>
+                <td><%= item.product_v.price %> $</td>
+                <td
+                    style="
+                        text-align: right !important;
+                        padding-left: 8px !important;
+                    "
+                >
+                    <%= item.product_v.price * item.quantity %> $
+                </td>
+            </tr>
 
-                <% }); %>
-                <tr>
-                    <td>Total</td>
-                    <td colspan="3" style="text-align: right">
-                        <%=
-                        products.reduce((prev,cur)=>prev+(cur.product_v.price *
-                        cur.quantity),0) %> $
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <script></script>
-    </body>
-</html>
+            <% }); %>
+            <tr>
+                <td>Total</td>
+                <td
+                    colspan="3"
+                    style="text-align: right !important; font-weight: bold"
+                >
+                    <%= products.reduce((prev,cur)=>prev+(cur.product_v.price *
+                    cur.quantity),0) %> $
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <script></script>
+</div>
+<!-- </html> -->
