@@ -1,4 +1,15 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiResponse } from "@/index";
+import {
+    Body,
+    Controller,
+    Get,
+    Param,
+    Post,
+    Put,
+    Query,
+    UseGuards,
+} from "@nestjs/common";
+import { User, UserIdentity } from "../auth/auth.decorator";
 import { AuthGuard } from "../auth/auth.guard";
 import { ShopService } from "../shop/shop.service";
 import {
@@ -7,11 +18,15 @@ import {
     CreateVersionDto,
     FindCategoryDto,
     FindProductDto,
+    FindProductVersionDto,
+    UpdateVerisonDto,
 } from "./product.dto";
-import { CategoryEntity, ProductEntity } from "./product.entity";
+import {
+    CategoryEntity,
+    ProductEntity,
+    ProductVersionEntity,
+} from "./product.entity";
 import { ProductService } from "./product.service";
-import { User, UserIdentity } from "../auth/auth.decorator";
-import { ApiResponse } from "@/index";
 
 @Controller("product")
 export class ProductController {
@@ -27,7 +42,7 @@ export class ProductController {
         @User() user: UserIdentity
     ): Promise<ApiResponse<ProductEntity>> {
         const product_ = payload.getProduct(),
-            product_v = payload.getProduct_v(),
+            // product_v = payload.getProduct_v(),
             categoryId = payload.getCategoryId(),
             shopId = user.shop;
 
@@ -47,7 +62,7 @@ export class ProductController {
         );
 
         // create version
-        await this.productService.createProductVersion(product_v, product);
+        // await this.productService.createProductVersion(product_v, product);
 
         return {
             message: "PRODUCT_CREATED",
@@ -114,6 +129,20 @@ export class ProductController {
 
         return { message: "PRODUCT_FOUND", data: products };
     }
+
+    @Get("/version")
+    async findProductVersion(
+        @Query() query: FindProductVersionDto
+    ): Promise<ApiResponse<ProductVersionEntity[] | ProductVersionEntity>> {
+        const { id: productVID, page, text } = query;
+
+        const products = productVID
+            ? await this.productService.getProductVersionById(productVID)
+            : await this.productService.findProductVersion(text, page);
+
+        return { message: "PRODUCT_VERSION_FOUND", data: products };
+    }
+
     @Get("category")
     async findCategory(
         @Query() query: FindCategoryDto
@@ -144,5 +173,21 @@ export class ProductController {
         const stat = await this.productService.loadProductStat();
 
         return { message: "STAT_FOUND", data: stat };
+    }
+
+    @Put("version/:id")
+    @UseGuards(AuthGuard)
+    async updateProductVersion(
+        @Param("id") versionId: string,
+        @Body() payload: UpdateVerisonDto
+    ): Promise<ApiResponse> {
+        const version = await this.productService.updateProductVersion({
+            ...payload,
+            id: versionId,
+        });
+        return {
+            message: "PRODUCT_UPDATED",
+            data: version,
+        };
     }
 }

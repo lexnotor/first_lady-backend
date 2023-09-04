@@ -16,7 +16,7 @@ export interface ShopInfo extends DefaultInfo {
     address?: string;
     profile?: string;
     cover?: string;
-    users?: UserShopInfo[];
+    users?: UserShopInfo[] | string[];
 }
 
 export interface UserInfo extends DefaultInfo {
@@ -27,24 +27,24 @@ export interface UserInfo extends DefaultInfo {
     birth?: string;
     address?: string;
     bank?: string;
-    shops?: UserShopInfo[];
+    shops?: UserShopInfo[] | string[];
 }
 
 export interface UserShopInfo extends DefaultInfo {
     user?: UserInfo;
     shop?: ShopInfo;
-    roles?: UserShopRoleInfo[];
+    roles?: UserShopRoleInfo[] | string[];
 }
 
 export interface RoleInfo extends DefaultInfo {
     title?: string;
     description?: string;
-    user_shops?: UserShopRoleInfo[];
+    user_shops?: UserShopRoleInfo[] | string[];
 }
 
 export interface UserShopRoleInfo extends DefaultInfo {
-    role?: RoleInfo;
-    user_shop?: UserShopInfo;
+    role?: RoleInfo | string;
+    user_shop?: UserShopInfo | string[];
 }
 
 export interface ProductInfo extends DefaultInfo {
@@ -52,9 +52,9 @@ export interface ProductInfo extends DefaultInfo {
     description?: string;
     brand?: string;
     sales?: number;
-    shop?: ShopInfo;
-    category?: CategoryInfo;
-    product_v?: ProductVersionInfo[];
+    shop?: ShopInfo | string;
+    category?: CategoryInfo | string;
+    product_v?: ProductVersionInfo[] | string[];
 }
 export interface ProductVersionInfo extends DefaultInfo {
     title?: string;
@@ -62,22 +62,22 @@ export interface ProductVersionInfo extends DefaultInfo {
     quantity?: number;
     price?: number;
     key_id?: string;
-    product?: ProductInfo;
+    product?: ProductInfo | string;
 }
 export interface CategoryInfo extends DefaultInfo {
     title?: string;
     description?: string;
-    shop?: ShopInfo;
+    shop?: ShopInfo | string;
 }
 
 export interface CartInfo extends DefaultInfo {
-    user?: UserInfo;
+    user?: UserInfo | string;
 }
 export interface CartProductInfo extends DefaultInfo {
     quantity?: number;
-    shop?: ShopInfo;
-    product?: ProductInfo;
-    product_v?: ProductVersionInfo;
+    shop?: ShopInfo | string;
+    product?: ProductInfo | string;
+    product_v?: ProductVersionInfo | string;
 }
 
 export interface ProductStats {
@@ -112,14 +112,14 @@ export interface OrderInfo extends DefaultInfo {
     date: Date;
     paid: boolean;
     state: OrderState;
-    user: UserInfo;
-    shop: ShopInfo;
-    products: OrderProductInfo[];
+    user: UserInfo | string;
+    shop: ShopInfo | string;
+    products: OrderProductInfo[] | string[];
 }
 
 export interface OrderProductInfo extends DefaultInfo {
-    order: OrderInfo;
-    product_v: ProductVersionInfo;
-    product: ProductInfo;
+    order: OrderInfo | string[];
+    product_v: ProductVersionInfo | string[];
+    product: ProductInfo | string[];
     quantity: number;
 }

@@ -18,6 +18,7 @@ import {
     ProductEntity,
     ProductVersionEntity,
 } from "./product.entity";
+import { excludeFrom } from "@/utils/excludeColumnFromEntity";
 
 @Injectable()
 export class ProductService {
@@ -45,7 +46,7 @@ export class ProductService {
 
         // optional
         product.category = category ?? undefined;
-        product.brand = payload.brand;
+        product.brand = payload.brand ?? undefined;
         product.description = payload.description ?? null;
 
         try {
@@ -71,7 +72,7 @@ export class ProductService {
         product_v.key_id = randomUUID();
         product_v.quantity = payload.quantity ?? 0;
         product_v.price = payload.price ?? 0;
-        product_v.title = "Default";
+        product_v.title = payload.title ?? "Default";
 
         product_v.product = product;
 
@@ -232,6 +233,32 @@ export class ProductService {
         return products;
     }
 
+    async findProductVersion(
+        text: string,
+        page = 1
+    ): Promise<ProductVersionEntity[]> {
+        let products_v: ProductVersionEntity[];
+        const filter: FindManyOptions<ProductVersionEntity> = {};
+
+        filter.where = [
+            { description: ILike(`%${text ?? ""}%`) },
+            { title: ILike(`%${text ?? ""}%`) },
+        ];
+        filter.order = { created_at: "DESC" };
+        filter.skip = (page - 1) * this.pageSize;
+        filter.take = this.pageSize;
+        filter.relations = { product: { category: true, shop: true } };
+
+        try {
+            products_v = await this.product_vRepo.find(filter);
+            if (products_v.length == 0) throw new Error("EMPTY_RESULT");
+        } catch (error) {
+            throw new HttpException("NO_PRODUCT_FOUND", HttpStatus.NOT_FOUND);
+        }
+
+        return excludeFrom(["deleted_at", "updated_at"], products_v);
+    }
+
     async findCategory(
         text: string,
         shopId?: string,
@@ -290,6 +317,32 @@ export class ProductService {
         }
 
         return await this.getProductById(product.id);
+    }
+
+    async updateProductVersion(
+        payload: ProductVersionInfo
+    ): Promise<ProductVersionEntity> {
+        const product_v = await this.getProductVersionById(payload.id);
+
+        const product_n = new ProductVersionEntity();
+        product_n.description = payload.description ?? product_v.description;
+        product_n.title = payload.title ?? product_v.title;
+        product_n.key_id = product_v.key_id;
+        product_n.price = payload.price ?? product_v.price;
+        product_n.quantity = payload.quantity ?? product_v.quantity;
+        product_n.product = product_v.product;
+
+        try {
+            await this.product_vRepo.softRemove(product_v);
+            await this.product_vRepo.save(product_n);
+        } catch (error) {
+            throw new HttpException(
+                "PRODUCT_V_NOT_MODIFIED",
+                HttpStatus.NOT_MODIFIED
+            );
+        }
+
+        return await this.getProductVersionById(product_v.id);
     }
 
     async deleteProduct(productId: string): Promise<string> {

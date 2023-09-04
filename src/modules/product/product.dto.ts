@@ -205,6 +205,21 @@ class FindProductDto {
     page = 1;
 }
 
+class FindProductVersionDto {
+    @IsOptional()
+    @IsString()
+    text: string;
+
+    @IsOptional()
+    @IsString()
+    @IsUUID()
+    id: string;
+
+    @IsOptional()
+    @IsNumber()
+    page = 1;
+}
+
 class FindCategoryDto {
     @IsOptional()
     @IsString()
@@ -224,6 +239,24 @@ class FindCategoryDto {
     page = 1;
 }
 
+class UpdateVerisonDto {
+    @IsOptional()
+    @IsString()
+    title?: string;
+
+    @IsOptional()
+    @IsString()
+    description?: string;
+
+    @IsOptional()
+    @IsNumber()
+    price?: number;
+
+    @IsOptional()
+    @IsNumber()
+    quantity?: number;
+}
+
 export {
     CreateCategoryDto,
     CreateProductDto,
@@ -232,4 +265,6 @@ export {
     FindCategoryDto,
     FindProductDto,
     CreateVersionDto,
+    UpdateVerisonDto,
+    FindProductVersionDto,
 };
