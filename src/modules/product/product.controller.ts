@@ -2,6 +2,7 @@ import { ApiResponse } from "@/index";
 import {
     Body,
     Controller,
+    Delete,
     Get,
     Param,
     Post,
@@ -188,6 +189,17 @@ export class ProductController {
         return {
             message: "PRODUCT_UPDATED",
             data: version,
+        };
+    }
+
+    @Delete("version/:id")
+    @UseGuards(AuthGuard)
+    async deleteProductVersion(
+        @Param("id") versionId: string
+    ): Promise<ApiResponse<string>> {
+        return {
+            message: "PRODUCT_DELETE",
+            data: await this.productService.deleteProductVersion(versionId),
         };
     }
 }

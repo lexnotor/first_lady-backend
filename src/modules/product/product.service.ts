@@ -123,16 +123,6 @@ export class ProductService {
             sales: true,
             created_at: true,
             shop: { title: true, id: true },
-            category: { created_at: true, title: true, id: true },
-            product_v: {
-                created_at: true,
-                id: true,
-                key_id: true,
-                price: true,
-                quantity: true,
-                title: true,
-                description: true,
-            },
         };
 
         let product: ProductEntity;
@@ -357,6 +347,20 @@ export class ProductService {
             );
         }
         return productId;
+    }
+
+    async deleteProductVersion(productVId: string): Promise<string> {
+        const product_v = await this.getProductVersionById(productVId);
+
+        try {
+            await this.product_vRepo.softRemove(product_v);
+        } catch (error) {
+            throw new HttpException(
+                "FAIL_TO_DELETE_PRODUCT_VERSION",
+                HttpStatus.NOT_MODIFIED
+            );
+        }
+        return productVId;
     }
 
     async countProductByCategory(): Promise<any> {
