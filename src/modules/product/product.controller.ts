@@ -182,10 +182,16 @@ export class ProductController {
         @Param("id") versionId: string,
         @Body() payload: UpdateVerisonDto
     ): Promise<ApiResponse> {
-        const version = await this.productService.updateProductVersion({
-            ...payload,
-            id: versionId,
-        });
+        const version = payload.quantity
+            ? await this.productService.addQuantity(
+                  versionId,
+                  payload.quantity,
+                  payload.price
+              )
+            : await this.productService.updateProductVersion({
+                  ...payload,
+                  id: versionId,
+              });
         return {
             message: "PRODUCT_UPDATED",
             data: version,
