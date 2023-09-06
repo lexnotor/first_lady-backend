@@ -157,7 +157,37 @@ export class ProductService {
         let product_v: ProductVersionEntity;
         const filter: FindOneOptions<ProductVersionEntity> = {};
         filter.where = { id: Equal(versionId) };
-        filter.relations = { product: { shop: true } };
+        filter.relations = { product: { category: true, shop: true } };
+        filter.select = {
+            created_at: true,
+            description: true,
+            id: true,
+            key_id: true,
+            price: true,
+            product: { title: true, id: true, shop: { id: true, title: true } },
+            title: true,
+            quantity: true,
+        };
+
+        try {
+            product_v = await this.product_vRepo.findOneOrFail(filter);
+        } catch (error) {
+            throw new HttpException(
+                "PRODUCT_VERSION_NOT_FOUND",
+                HttpStatus.NOT_FOUND
+            );
+        }
+
+        return product_v;
+    }
+
+    async getProductVersionByKeyId(
+        keyId: string
+    ): Promise<ProductVersionEntity> {
+        let product_v: ProductVersionEntity;
+        const filter: FindOneOptions<ProductVersionEntity> = {};
+        filter.where = { key_id: Equal(keyId) };
+        filter.relations = { product: { category: true, shop: true } };
         filter.select = {
             created_at: true,
             description: true,
@@ -198,16 +228,7 @@ export class ProductService {
             title: true,
             description: true,
             created_at: true,
-            category: { title: true, id: true },
-            shop: { id: true, title: true },
-            product_v: {
-                created_at: true,
-                description: true,
-                id: true,
-                price: true,
-                quantity: true,
-                title: true,
-            },
+            sales: true,
         };
         filter.order = { created_at: "DESC" };
         filter.skip = (page - 1) * this.pageSize;
@@ -333,6 +354,35 @@ export class ProductService {
         }
 
         return await this.getProductVersionById(product_v.id);
+    }
+
+    async addQuantity(
+        versionId: string,
+        quantity: number,
+        price?: number
+    ): Promise<ProductVersionEntity> {
+        const product_v = await this.getProductVersionById(versionId);
+
+        const newProduct_v = new ProductVersionEntity();
+
+        newProduct_v.description = product_v.description;
+        newProduct_v.key_id = product_v.key_id;
+        newProduct_v.price = price ?? product_v.price;
+        newProduct_v.quantity = +quantity + product_v.quantity;
+        newProduct_v.product = product_v.product;
+        newProduct_v.title = product_v.title;
+
+        try {
+            await this.product_vRepo.save(newProduct_v);
+        } catch (error) {
+            throw new HttpException(
+                "CANNOT_ADD_QUANTITY",
+                HttpStatus.NOT_MODIFIED
+            );
+        }
+        await this.deleteProductVersion(product_v.id);
+
+        return this.getProductVersionById(newProduct_v.id);
     }
 
     async deleteProduct(productId: string): Promise<string> {

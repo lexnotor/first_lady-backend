@@ -9,7 +9,7 @@ async function bootstrap() {
 
     app.setGlobalPrefix("/api/v1");
     app.enableCors({
-        methods: ["POST", "GET", "OPTIONS", "UPDATE", "DELETE"],
+        methods: ["POST", "GET", "OPTIONS", "PUT", "DELETE"],
         origin: "*",
         allowedHeaders: "*",
     });
