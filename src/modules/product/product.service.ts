@@ -3,6 +3,7 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { randomUUID } from "crypto";
 import {
+    Between,
     Equal,
     FindManyOptions,
     FindOneOptions,
@@ -19,6 +20,7 @@ import {
     ProductVersionEntity,
 } from "./product.entity";
 import { excludeFrom } from "@/utils/excludeColumnFromEntity";
+import { FindProductVersionDto } from "./product.dto";
 
 @Injectable()
 export class ProductService {
@@ -122,7 +124,6 @@ export class ProductService {
             title: true,
             sales: true,
             created_at: true,
-            shop: { title: true, id: true },
         };
 
         let product: ProductEntity;
@@ -246,15 +247,28 @@ export class ProductService {
 
     async findProductVersion(
         text: string,
-        page = 1
+        page = 1,
+        reqFilters?: Partial<FindProductVersionDto>
     ): Promise<ProductVersionEntity[]> {
         let products_v: ProductVersionEntity[];
         const filter: FindManyOptions<ProductVersionEntity> = {};
 
-        filter.where = [
-            { description: ILike(`%${text ?? ""}%`) },
-            { title: ILike(`%${text ?? ""}%`) },
-        ];
+        filter.where = reqFilters
+            ? {
+                  title: ILike(`%${text ?? ""}%`),
+                  quantity: Between(
+                      reqFilters.minQty ?? 0,
+                      reqFilters.maxQty ?? 9e8
+                  ),
+                  price: Between(
+                      reqFilters.minPrice ?? 0,
+                      reqFilters.maxPrice ?? 9e8
+                  ),
+              }
+            : [
+                  { description: ILike(`%${text ?? ""}%`) },
+                  { title: ILike(`%${text ?? ""}%`) },
+              ];
         filter.order = { created_at: "DESC" };
         filter.skip = (page - 1) * this.pageSize;
         filter.take = this.pageSize;

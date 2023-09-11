@@ -13,6 +13,7 @@ import {
 import { User, UserIdentity } from "../auth/auth.decorator";
 import { AuthGuard } from "../auth/auth.guard";
 import { ShopService } from "../shop/shop.service";
+import { PrintableService } from "./printable.service";
 import {
     CreateCategoryDto,
     CreateProductDto,
@@ -33,7 +34,8 @@ import { ProductService } from "./product.service";
 export class ProductController {
     constructor(
         private readonly productService: ProductService,
-        private readonly shopService: ShopService
+        private readonly shopService: ShopService,
+        private readonly printableService: PrintableService
     ) {}
 
     @Post("new")
@@ -131,14 +133,26 @@ export class ProductController {
         return { message: "PRODUCT_FOUND", data: products };
     }
 
+    @Get("summary")
+    async getSummary(
+        @Query() query: FindProductVersionDto
+    ): Promise<ApiResponse> {
+        return {
+            message: "GENERATE_PDF",
+            data: await this.printableService.generatePrintable(query),
+        };
+    }
+
     @Get("/version")
     async findProductVersion(
         @Query() query: FindProductVersionDto
     ): Promise<ApiResponse<ProductVersionEntity[] | ProductVersionEntity>> {
-        const { id: productVID, page, text } = query;
+        const { id: productVID, page, text, ...filter } = query;
 
         const products = productVID
             ? await this.productService.getProductVersionById(productVID)
+            : filter.maxPrice | filter.maxQty | filter.minPrice | filter.minQty
+            ? await this.productService.findProductVersion(text, page, filter)
             : await this.productService.findProductVersion(text, page);
 
         return { message: "PRODUCT_VERSION_FOUND", data: products };

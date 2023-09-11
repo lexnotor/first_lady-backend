@@ -98,13 +98,13 @@ export interface CategoryStats {
 }
 
 enum OrderType {
-    INSITU = "INSITU",
-    DELIVERY = "DELIVERY",
+    INSITU = "SURPLACE",
+    DELIVERY = "ADELIVRER",
 }
 enum OrderState {
-    DONE = "DONE",
-    PENDING = "PENDING",
-    ERROR = "ERROR",
+    DONE = "TERMINER",
+    PENDING = "EN_COURS",
+    ERROR = "ERREUR",
 }
 export interface OrderInfo extends DefaultInfo {
     type: OrderType;
