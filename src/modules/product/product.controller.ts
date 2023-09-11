@@ -29,11 +29,15 @@ import {
     ProductVersionEntity,
 } from "./product.entity";
 import { ProductService } from "./product.service";
+import { ProductVersionService } from "./productVersion.service";
+import { CategoryService } from "./category.service";
 
 @Controller("product")
 export class ProductController {
     constructor(
         private readonly productService: ProductService,
+        private readonly productVersionService: ProductVersionService,
+        private readonly categoryService: CategoryService,
         private readonly shopService: ShopService,
         private readonly printableService: PrintableService
     ) {}
@@ -51,7 +55,7 @@ export class ProductController {
 
         // find category
         const category = categoryId
-            ? await this.productService.getCategoryById(categoryId)
+            ? await this.categoryService.getCategoryById(categoryId)
             : undefined;
 
         // found shop
@@ -80,7 +84,7 @@ export class ProductController {
         const product = await this.productService.getProductById(
             payload.getproduct()
         );
-        await this.productService.createProductVersion(
+        await this.productVersionService.createProductVersion(
             payload.getVersion(),
             product
         );
@@ -101,7 +105,7 @@ export class ProductController {
         const shop = await this.shopService.getShopById(user.shop);
 
         // create category
-        const category = await this.productService.createCategory(
+        const category = await this.categoryService.createCategory(
             payload.getCategory(),
             shop
         );
@@ -150,10 +154,14 @@ export class ProductController {
         const { id: productVID, page, text, ...filter } = query;
 
         const products = productVID
-            ? await this.productService.getProductVersionById(productVID)
+            ? await this.productVersionService.getProductVersionById(productVID)
             : filter.maxPrice | filter.maxQty | filter.minPrice | filter.minQty
-            ? await this.productService.findProductVersion(text, page, filter)
-            : await this.productService.findProductVersion(text, page);
+            ? await this.productVersionService.findProductVersion(
+                  text,
+                  page,
+                  filter
+              )
+            : await this.productVersionService.findProductVersion(text, page);
 
         return { message: "PRODUCT_VERSION_FOUND", data: products };
     }
@@ -164,8 +172,8 @@ export class ProductController {
     ): Promise<ApiResponse<CategoryEntity[] | CategoryEntity>> {
         const { shop: shopId, text, id: categId, page } = query;
         const categories = categId
-            ? await this.productService.getCategoryById(categId)
-            : await this.productService.findCategory(text, shopId, page);
+            ? await this.categoryService.getCategoryById(categId)
+            : await this.categoryService.findCategory(text, shopId, page);
 
         return {
             message: "CATEGORIES_FOUND",
@@ -179,7 +187,7 @@ export class ProductController {
     > {
         return {
             message: "CATEGORY_STAT",
-            data: await this.productService.countProductByCategory(),
+            data: await this.categoryService.countProductByCategory(),
         };
     }
 
@@ -197,12 +205,12 @@ export class ProductController {
         @Body() payload: UpdateVerisonDto
     ): Promise<ApiResponse> {
         const version = payload.quantity
-            ? await this.productService.addQuantity(
+            ? await this.productVersionService.addQuantity(
                   versionId,
                   payload.quantity,
                   payload.price
               )
-            : await this.productService.updateProductVersion({
+            : await this.productVersionService.updateProductVersion({
                   ...payload,
                   id: versionId,
               });
@@ -219,7 +227,9 @@ export class ProductController {
     ): Promise<ApiResponse<string>> {
         return {
             message: "PRODUCT_DELETE",
-            data: await this.productService.deleteProductVersion(versionId),
+            data: await this.productVersionService.deleteProductVersion(
+                versionId
+            ),
         };
     }
 }

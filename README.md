@@ -1,6 +1,6 @@
 -   modifier variante | produit
 
-filtre(ok) & impression (commande & produits)
+filtre & impression (commande)
 
 Nom du client sur la facture
 

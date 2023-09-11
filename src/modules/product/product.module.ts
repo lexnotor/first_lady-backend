@@ -10,6 +10,8 @@ import {
 } from "./product.entity";
 import { ProductService } from "./product.service";
 import { PrintableService } from "./printable.service";
+import { ProductVersionService } from "./productVersion.service";
+import { CategoryService } from "./category.service";
 
 @Module({
     imports: [
@@ -22,7 +24,12 @@ import { PrintableService } from "./printable.service";
         ShopModule,
     ],
     controllers: [ProductController],
-    providers: [ProductService, PrintableService],
-    exports: [ProductService],
+    providers: [
+        ProductService,
+        PrintableService,
+        ProductVersionService,
+        CategoryService,
+    ],
+    exports: [ProductService, ProductVersionService],
 })
 export class ProductModule {}
