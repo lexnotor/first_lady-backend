@@ -12,13 +12,13 @@ import { UserEntity } from "../user/user.entity";
 import { ProductEntity, ProductVersionEntity } from "../product/product.entity";
 
 enum OrderType {
-    INSITU = "INSITU",
-    DELIVERY = "DELIVERY",
+    INSITU = "SURPLACE",
+    DELIVERY = "ADELIVRER",
 }
 enum OrderState {
-    DONE = "DONE",
-    PENDING = "PENDING",
-    ERROR = "ERROR",
+    DONE = "TERMINER",
+    PENDING = "EN_COURS",
+    ERROR = "ERREUR",
 }
 
 @Entity("orders")

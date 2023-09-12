@@ -5,6 +5,7 @@ import {
     IsOptional,
     IsString,
     IsUUID,
+    Matches,
     MinLength,
 } from "class-validator";
 
@@ -208,15 +209,30 @@ class FindProductDto {
 class FindProductVersionDto {
     @IsOptional()
     @IsString()
-    text: string;
+    text?: string;
 
     @IsOptional()
     @IsString()
     @IsUUID()
-    id: string;
+    id?: string;
 
     @IsOptional()
-    @IsNumber()
+    @Matches(/[0-9]+/i)
+    minQty?: number;
+
+    @IsOptional()
+    @Matches(/[0-9]+/i)
+    maxQty?: number;
+
+    @IsOptional()
+    @Matches(/[0-9]+/i)
+    minPrice?: number;
+
+    @IsOptional()
+    @Matches(/[0-9]+/i)
+    maxPrice?: number;
+
+    @IsOptional()
     page = 1;
 }
 
@@ -260,11 +276,11 @@ class UpdateVerisonDto {
 export {
     CreateCategoryDto,
     CreateProductDto,
-    UpdateCategoryDto,
-    UpdateProductDto,
+    CreateVersionDto,
     FindCategoryDto,
     FindProductDto,
-    CreateVersionDto,
-    UpdateVerisonDto,
     FindProductVersionDto,
+    UpdateCategoryDto,
+    UpdateProductDto,
+    UpdateVerisonDto,
 };
