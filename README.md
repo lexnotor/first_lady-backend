@@ -1,4 +1,4 @@
--   modifier variante | produit
+modifier variante
 
 filtre & impression (commande)
 

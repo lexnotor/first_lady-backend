@@ -171,7 +171,7 @@ export class ProductController {
     async updateProductVersion(
         @Param("id") versionId: string,
         @Body() payload: UpdateVerisonDto
-    ): Promise<ApiResponse> {
+    ): Promise<ApiResponse<ProductVersionEntity>> {
         const version = payload.quantity
             ? await this.productVersionService.addQuantity(
                   versionId,

@@ -169,7 +169,7 @@ export class ProductVersionService {
             );
         }
 
-        return await this.getProductVersionById(product_v.id);
+        return await this.getProductVersionById(product_n.id);
     }
 
     async addQuantity(
