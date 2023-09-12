@@ -4,6 +4,7 @@ import { OnEvent } from "@nestjs/event-emitter";
 import { User, UserIdentity } from "../auth/auth.decorator";
 import { AuthGuard } from "../auth/auth.guard";
 import { ProductService } from "../product/product.service";
+import { ProductVersionService } from "../product/productVersion.service";
 import { UserService } from "../user/user.service";
 import { AddItemDto } from "./cart.dto";
 import { CartEntity, CartProductEntity } from "./cart.entity";
@@ -14,7 +15,8 @@ export class CartController {
     constructor(
         private readonly cartService: CartService,
         private readonly userService: UserService,
-        private readonly productService: ProductService
+        private readonly productService: ProductService,
+        private readonly productVersionService: ProductVersionService
     ) {}
 
     @OnEvent("create_cart")
@@ -42,9 +44,10 @@ export class CartController {
             cart = await this.createCart(user.id);
         }
 
-        const product_v = await this.productService.getProductVersionById(
-            payload.product_v
-        );
+        const product_v =
+            await this.productVersionService.getProductVersionById(
+                payload.product_v
+            );
 
         const item = await this.cartService.addItem(
             { quantity: payload.quantity },

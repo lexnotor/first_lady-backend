@@ -68,37 +68,33 @@ class UpdateProductDto {
     @IsOptional()
     @IsString()
     @MinLength(3)
-    title: string;
+    title?: string;
 
     // optional
     @IsOptional()
     @IsString()
-    description: string;
+    description?: string;
 
     @IsOptional()
     @IsString()
-    brand: string;
+    brand?: string;
 
     @IsOptional()
     @IsNumber()
-    sales: number;
+    sales?: number;
 
     @IsOptional()
     @IsString()
     @IsUUID()
-    category: string;
-
-    @IsOptional()
-    @IsUUID()
-    key_id: string;
+    category?: string;
 
     @IsOptional()
     @IsNumber()
-    quantity: number;
+    quantity?: number;
 
     @IsOptional()
     @IsNumber()
-    price: number;
+    price?: number;
 
     getProduct(): ProductInfo {
         return {
@@ -114,7 +110,6 @@ class UpdateProductDto {
         return {
             quantity: this.quantity,
             price: this.price,
-            key_id: this.key_id,
         };
     }
 

@@ -21,6 +21,7 @@ import {
     FindCategoryDto,
     FindProductDto,
     FindProductVersionDto,
+    UpdateProductDto,
     UpdateVerisonDto,
 } from "./product.dto";
 import {
@@ -29,15 +30,22 @@ import {
     ProductVersionEntity,
 } from "./product.entity";
 import { ProductService } from "./product.service";
+import { ProductVersionService } from "./productVersion.service";
+import { CategoryService } from "./category.service";
 
 @Controller("product")
 export class ProductController {
     constructor(
         private readonly productService: ProductService,
+        private readonly productVersionService: ProductVersionService,
+        private readonly categoryService: CategoryService,
         private readonly shopService: ShopService,
         private readonly printableService: PrintableService
     ) {}
 
+    // -----------------------------------------
+    // ----------- PRODUCT ---------------------
+    // -----------------------------------------
     @Post("new")
     @UseGuards(AuthGuard)
     async createProduct(
@@ -51,7 +59,7 @@ export class ProductController {
 
         // find category
         const category = categoryId
-            ? await this.productService.getCategoryById(categoryId)
+            ? await this.categoryService.getCategoryById(categoryId)
             : undefined;
 
         // found shop
@@ -73,53 +81,6 @@ export class ProductController {
         };
     }
 
-    @Post("version/new")
-    async createVersion(
-        @Body() payload: CreateVersionDto
-    ): Promise<ApiResponse<ProductEntity>> {
-        const product = await this.productService.getProductById(
-            payload.getproduct()
-        );
-        await this.productService.createProductVersion(
-            payload.getVersion(),
-            product
-        );
-
-        return {
-            message: "PRODUCT_VERSION_CREATED",
-            data: await this.productService.getProductById(product.id),
-        };
-    }
-
-    @Post("category/new")
-    @UseGuards(AuthGuard)
-    async createCategory(
-        @Body() payload: CreateCategoryDto,
-        @User() user: UserIdentity
-    ): Promise<ApiResponse<CategoryEntity>> {
-        // find shop
-        const shop = await this.shopService.getShopById(user.shop);
-
-        // create category
-        const category = await this.productService.createCategory(
-            payload.getCategory(),
-            shop
-        );
-
-        category.shop = undefined;
-
-        return {
-            message: "CATEGORY_CREATED",
-            data: category,
-        };
-    }
-
-    @Post("photo/set")
-    @UseGuards(AuthGuard)
-    async setPhoto(@Query() data: any) {
-        return data;
-    }
-
     @Get()
     async findProduct(
         @Query() query: FindProductDto
@@ -133,13 +94,46 @@ export class ProductController {
         return { message: "PRODUCT_FOUND", data: products };
     }
 
-    @Get("summary")
-    async getSummary(
-        @Query() query: FindProductVersionDto
-    ): Promise<ApiResponse> {
+    @Put("update/:id")
+    @UseGuards(AuthGuard)
+    async updateProduct(
+        @Body() payload: UpdateProductDto,
+        @Param("id") productId: string
+    ): Promise<ApiResponse<ProductEntity>> {
+        const category = payload.category
+            ? await this.categoryService.getCategoryById(payload.category)
+            : undefined;
+
         return {
-            message: "GENERATE_PDF",
-            data: await this.printableService.generatePrintable(query),
+            message: "PRODUCT_UPDATED",
+            data: await this.productService.updateProduct(
+                {
+                    ...payload.getProduct(),
+                    id: productId,
+                },
+                category
+            ),
+        };
+    }
+
+    // -----------------------------------------
+    // ----------- VERSION ---------------------
+    // -----------------------------------------
+    @Post("version/new")
+    async createVersion(
+        @Body() payload: CreateVersionDto
+    ): Promise<ApiResponse<ProductEntity>> {
+        const product = await this.productService.getProductById(
+            payload.getproduct()
+        );
+        await this.productVersionService.createProductVersion(
+            payload.getVersion(),
+            product
+        );
+
+        return {
+            message: "PRODUCT_VERSION_CREATED",
+            data: await this.productService.getProductById(product.id),
         };
     }
 
@@ -150,44 +144,26 @@ export class ProductController {
         const { id: productVID, page, text, ...filter } = query;
 
         const products = productVID
-            ? await this.productService.getProductVersionById(productVID)
+            ? await this.productVersionService.getProductVersionById(productVID)
             : filter.maxPrice | filter.maxQty | filter.minPrice | filter.minQty
-            ? await this.productService.findProductVersion(text, page, filter)
-            : await this.productService.findProductVersion(text, page);
+            ? await this.productVersionService.findProductVersion(
+                  text,
+                  page,
+                  filter
+              )
+            : await this.productVersionService.findProductVersion(text, page);
 
         return { message: "PRODUCT_VERSION_FOUND", data: products };
     }
 
-    @Get("category")
-    async findCategory(
-        @Query() query: FindCategoryDto
-    ): Promise<ApiResponse<CategoryEntity[] | CategoryEntity>> {
-        const { shop: shopId, text, id: categId, page } = query;
-        const categories = categId
-            ? await this.productService.getCategoryById(categId)
-            : await this.productService.findCategory(text, shopId, page);
-
+    @Get("summary")
+    async getSummary(
+        @Query() query: FindProductVersionDto
+    ): Promise<ApiResponse> {
         return {
-            message: "CATEGORIES_FOUND",
-            data: categories,
+            message: "GENERATE_PDF",
+            data: await this.printableService.generatePrintable(query),
         };
-    }
-
-    @Get("category/count")
-    async countProductCategorie(): Promise<
-        ApiResponse<{ id: string; title: string; count: string }>
-    > {
-        return {
-            message: "CATEGORY_STAT",
-            data: await this.productService.countProductByCategory(),
-        };
-    }
-
-    @Get("stats")
-    async getProductStats(): Promise<ApiResponse> {
-        const stat = await this.productService.loadProductStat();
-
-        return { message: "STAT_FOUND", data: stat };
     }
 
     @Put("version/:id")
@@ -195,14 +171,14 @@ export class ProductController {
     async updateProductVersion(
         @Param("id") versionId: string,
         @Body() payload: UpdateVerisonDto
-    ): Promise<ApiResponse> {
+    ): Promise<ApiResponse<ProductVersionEntity>> {
         const version = payload.quantity
-            ? await this.productService.addQuantity(
+            ? await this.productVersionService.addQuantity(
                   versionId,
                   payload.quantity,
                   payload.price
               )
-            : await this.productService.updateProductVersion({
+            : await this.productVersionService.updateProductVersion({
                   ...payload,
                   id: versionId,
               });
@@ -219,7 +195,76 @@ export class ProductController {
     ): Promise<ApiResponse<string>> {
         return {
             message: "PRODUCT_DELETE",
-            data: await this.productService.deleteProductVersion(versionId),
+            data: await this.productVersionService.deleteProductVersion(
+                versionId
+            ),
         };
+    }
+
+    @Post("version/photo")
+    @UseGuards(AuthGuard)
+    async setPhoto(@Query() data: any) {
+        return data;
+    }
+
+    // -----------------------------------------
+    // ----------- CATEGORY --------------------
+    // -----------------------------------------
+
+    @Post("category/new")
+    @UseGuards(AuthGuard)
+    async createCategory(
+        @Body() payload: CreateCategoryDto,
+        @User() user: UserIdentity
+    ): Promise<ApiResponse<CategoryEntity>> {
+        // find shop
+        const shop = await this.shopService.getShopById(user.shop);
+
+        // create category
+        const category = await this.categoryService.createCategory(
+            payload.getCategory(),
+            shop
+        );
+
+        category.shop = undefined;
+
+        return {
+            message: "CATEGORY_CREATED",
+            data: category,
+        };
+    }
+    @Get("category")
+    async findCategory(
+        @Query() query: FindCategoryDto
+    ): Promise<ApiResponse<CategoryEntity[] | CategoryEntity>> {
+        const { shop: shopId, text, id: categId, page } = query;
+        const categories = categId
+            ? await this.categoryService.getCategoryById(categId)
+            : await this.categoryService.findCategory(text, shopId, page);
+
+        return {
+            message: "CATEGORIES_FOUND",
+            data: categories,
+        };
+    }
+
+    @Get("category/count")
+    async countProductCategorie(): Promise<
+        ApiResponse<{ id: string; title: string; count: string }>
+    > {
+        return {
+            message: "CATEGORY_STAT",
+            data: await this.categoryService.countProductByCategory(),
+        };
+    }
+
+    // -----------------------------------------
+    // ----------- ALL -------------------------
+    // -----------------------------------------
+    @Get("stats")
+    async getProductStats(): Promise<ApiResponse> {
+        const stat = await this.productService.loadProductStat();
+
+        return { message: "STAT_FOUND", data: stat };
     }
 }
