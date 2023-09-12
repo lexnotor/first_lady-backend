@@ -21,6 +21,7 @@ import {
     FindCategoryDto,
     FindProductDto,
     FindProductVersionDto,
+    UpdateProductDto,
     UpdateVerisonDto,
 } from "./product.dto";
 import {
@@ -42,6 +43,9 @@ export class ProductController {
         private readonly printableService: PrintableService
     ) {}
 
+    // -----------------------------------------
+    // ----------- PRODUCT ---------------------
+    // -----------------------------------------
     @Post("new")
     @UseGuards(AuthGuard)
     async createProduct(
@@ -77,6 +81,44 @@ export class ProductController {
         };
     }
 
+    @Get()
+    async findProduct(
+        @Query() query: FindProductDto
+    ): Promise<ApiResponse<ProductEntity[] | ProductEntity>> {
+        const { id: productID, page, text } = query;
+
+        const products = productID
+            ? await this.productService.getProductById(productID)
+            : await this.productService.findProduct(text, page);
+
+        return { message: "PRODUCT_FOUND", data: products };
+    }
+
+    @Put("update/:id")
+    @UseGuards(AuthGuard)
+    async updateProduct(
+        @Body() payload: UpdateProductDto,
+        @Param("id") productId: string
+    ): Promise<ApiResponse<ProductEntity>> {
+        const category = payload.category
+            ? await this.categoryService.getCategoryById(payload.category)
+            : undefined;
+
+        return {
+            message: "PRODUCT_UPDATED",
+            data: await this.productService.updateProduct(
+                {
+                    ...payload.getProduct(),
+                    id: productId,
+                },
+                category
+            ),
+        };
+    }
+
+    // -----------------------------------------
+    // ----------- VERSION ---------------------
+    // -----------------------------------------
     @Post("version/new")
     async createVersion(
         @Body() payload: CreateVersionDto
@@ -92,58 +134,6 @@ export class ProductController {
         return {
             message: "PRODUCT_VERSION_CREATED",
             data: await this.productService.getProductById(product.id),
-        };
-    }
-
-    @Post("category/new")
-    @UseGuards(AuthGuard)
-    async createCategory(
-        @Body() payload: CreateCategoryDto,
-        @User() user: UserIdentity
-    ): Promise<ApiResponse<CategoryEntity>> {
-        // find shop
-        const shop = await this.shopService.getShopById(user.shop);
-
-        // create category
-        const category = await this.categoryService.createCategory(
-            payload.getCategory(),
-            shop
-        );
-
-        category.shop = undefined;
-
-        return {
-            message: "CATEGORY_CREATED",
-            data: category,
-        };
-    }
-
-    @Post("photo/set")
-    @UseGuards(AuthGuard)
-    async setPhoto(@Query() data: any) {
-        return data;
-    }
-
-    @Get()
-    async findProduct(
-        @Query() query: FindProductDto
-    ): Promise<ApiResponse<ProductEntity[] | ProductEntity>> {
-        const { id: productID, page, text } = query;
-
-        const products = productID
-            ? await this.productService.getProductById(productID)
-            : await this.productService.findProduct(text, page);
-
-        return { message: "PRODUCT_FOUND", data: products };
-    }
-
-    @Get("summary")
-    async getSummary(
-        @Query() query: FindProductVersionDto
-    ): Promise<ApiResponse> {
-        return {
-            message: "GENERATE_PDF",
-            data: await this.printableService.generatePrintable(query),
         };
     }
 
@@ -166,36 +156,14 @@ export class ProductController {
         return { message: "PRODUCT_VERSION_FOUND", data: products };
     }
 
-    @Get("category")
-    async findCategory(
-        @Query() query: FindCategoryDto
-    ): Promise<ApiResponse<CategoryEntity[] | CategoryEntity>> {
-        const { shop: shopId, text, id: categId, page } = query;
-        const categories = categId
-            ? await this.categoryService.getCategoryById(categId)
-            : await this.categoryService.findCategory(text, shopId, page);
-
+    @Get("summary")
+    async getSummary(
+        @Query() query: FindProductVersionDto
+    ): Promise<ApiResponse> {
         return {
-            message: "CATEGORIES_FOUND",
-            data: categories,
+            message: "GENERATE_PDF",
+            data: await this.printableService.generatePrintable(query),
         };
-    }
-
-    @Get("category/count")
-    async countProductCategorie(): Promise<
-        ApiResponse<{ id: string; title: string; count: string }>
-    > {
-        return {
-            message: "CATEGORY_STAT",
-            data: await this.categoryService.countProductByCategory(),
-        };
-    }
-
-    @Get("stats")
-    async getProductStats(): Promise<ApiResponse> {
-        const stat = await this.productService.loadProductStat();
-
-        return { message: "STAT_FOUND", data: stat };
     }
 
     @Put("version/:id")
@@ -231,5 +199,72 @@ export class ProductController {
                 versionId
             ),
         };
+    }
+
+    @Post("version/photo")
+    @UseGuards(AuthGuard)
+    async setPhoto(@Query() data: any) {
+        return data;
+    }
+
+    // -----------------------------------------
+    // ----------- CATEGORY --------------------
+    // -----------------------------------------
+
+    @Post("category/new")
+    @UseGuards(AuthGuard)
+    async createCategory(
+        @Body() payload: CreateCategoryDto,
+        @User() user: UserIdentity
+    ): Promise<ApiResponse<CategoryEntity>> {
+        // find shop
+        const shop = await this.shopService.getShopById(user.shop);
+
+        // create category
+        const category = await this.categoryService.createCategory(
+            payload.getCategory(),
+            shop
+        );
+
+        category.shop = undefined;
+
+        return {
+            message: "CATEGORY_CREATED",
+            data: category,
+        };
+    }
+    @Get("category")
+    async findCategory(
+        @Query() query: FindCategoryDto
+    ): Promise<ApiResponse<CategoryEntity[] | CategoryEntity>> {
+        const { shop: shopId, text, id: categId, page } = query;
+        const categories = categId
+            ? await this.categoryService.getCategoryById(categId)
+            : await this.categoryService.findCategory(text, shopId, page);
+
+        return {
+            message: "CATEGORIES_FOUND",
+            data: categories,
+        };
+    }
+
+    @Get("category/count")
+    async countProductCategorie(): Promise<
+        ApiResponse<{ id: string; title: string; count: string }>
+    > {
+        return {
+            message: "CATEGORY_STAT",
+            data: await this.categoryService.countProductByCategory(),
+        };
+    }
+
+    // -----------------------------------------
+    // ----------- ALL -------------------------
+    // -----------------------------------------
+    @Get("stats")
+    async getProductStats(): Promise<ApiResponse> {
+        const stat = await this.productService.loadProductStat();
+
+        return { message: "STAT_FOUND", data: stat };
     }
 }

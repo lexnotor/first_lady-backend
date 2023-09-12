@@ -61,7 +61,6 @@ export class ProductVersionService {
             id: true,
             key_id: true,
             price: true,
-            product: { title: true, id: true, shop: { id: true, title: true } },
             title: true,
             quantity: true,
         };

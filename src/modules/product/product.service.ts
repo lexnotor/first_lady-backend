@@ -71,6 +71,9 @@ export class ProductService {
             title: true,
             sales: true,
             created_at: true,
+            description: true,
+            brand: true,
+            updated_at: true,
         };
 
         let product: ProductEntity;
@@ -117,12 +120,16 @@ export class ProductService {
         return products;
     }
 
-    async updateProduct(payload: ProductInfo): Promise<ProductEntity> {
+    async updateProduct(
+        payload: ProductInfo,
+        category?: CategoryEntity
+    ): Promise<ProductEntity> {
         const product = await this.getProductById(payload.id);
 
         product.brand = payload.brand ?? product.brand;
         product.description = payload.description ?? product.description;
         product.title = payload.title ?? product.title;
+        product.category = category ?? product.category;
 
         try {
             await this.productRepo.save(product);
