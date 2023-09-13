@@ -124,7 +124,7 @@ export class OrderController {
         return {
             message: "ORDERS_FOUND",
             data:
-                query.end || query.begin
+                query.end || query.begin || query.state || query.type
                     ? await this.orderService.findOrders(query)
                     : await this.orderService.getOrderAllOrders(),
         };

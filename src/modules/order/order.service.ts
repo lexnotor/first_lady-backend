@@ -159,7 +159,9 @@ export class OrderService {
                     ? MoreThanOrEqual(new Date(query.begin))
                     : query.end
                     ? LessThanOrEqual(new Date(query.end))
-                    : new Date(),
+                    : undefined,
+            state: query.state ?? undefined,
+            type: query.type ?? undefined,
         };
         try {
             orders = await this.orderRepo.find(filter);

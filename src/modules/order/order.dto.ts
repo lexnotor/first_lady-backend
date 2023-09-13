@@ -9,7 +9,7 @@ import {
     Matches,
     isDate,
 } from "class-validator";
-import { OrderType } from "./order.entity";
+import { OrderState, OrderType } from "./order.entity";
 
 class ResquestOrderDto {
     @IsArray()
@@ -44,11 +44,19 @@ class SaveLocalOrderDto {
 class FindOrderQueryDto {
     @IsOptional()
     @Matches(/^\d{4}-\d{2}-\d{2}$/)
-    begin: string;
+    begin?: string;
 
     @IsOptional()
     @Matches(/^\d{4}-\d{2}-\d{2}$/)
-    end: string;
+    end?: string;
+
+    @IsOptional()
+    @IsEnum(OrderState)
+    state?: OrderState;
+
+    @IsOptional()
+    @IsEnum(OrderType)
+    type?: OrderType;
 
     isValideDate() {
         const begin = this.begin;
