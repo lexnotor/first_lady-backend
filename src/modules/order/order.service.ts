@@ -78,12 +78,20 @@ export class OrderService {
         return order;
     }
 
-    async getOrderById(orderId: string): Promise<OrderEntity> {
+    async getOrderById(
+        orderId: string,
+        withDeleted = false
+    ): Promise<OrderEntity> {
         let order: OrderEntity;
 
         const filter: FindOneOptions<OrderEntity> = {};
         filter.where = { id: Equal(orderId) };
-        filter.relations = { products: true, shop: true, user: true };
+        filter.relations = {
+            products: { product: true, product_v: true },
+            shop: true,
+            user: true,
+        };
+        filter.withDeleted = withDeleted;
 
         try {
             order = await this.orderRepo.findOneOrFail(filter);

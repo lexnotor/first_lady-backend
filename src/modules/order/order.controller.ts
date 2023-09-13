@@ -111,10 +111,20 @@ export class OrderController {
         };
     }
 
+    @Get("one/:orderId")
+    async getOneOrder(
+        @Param("orderId") orderId: string
+    ): Promise<ApiResponse<OrderEntity>> {
+        return {
+            message: "ORDER_FOUND",
+            data: await this.orderService.getOrderById(orderId, true),
+        };
+    }
+
     @Get()
     async findOrders(
         @Query() query: FindOrderQueryDto
-    ): Promise<ApiResponse<OrderEntity[]>> {
+    ): Promise<ApiResponse<OrderEntity | OrderEntity[]>> {
         if (!query.isValideDate())
             throw new HttpException(
                 "INVALIDE_DATE_PROVIDED",
