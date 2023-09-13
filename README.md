@@ -1,5 +1,3 @@
-modifier variante
-
 filtre & impression (commande)
 
 Nom du client sur la facture

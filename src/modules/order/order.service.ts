@@ -1,6 +1,14 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Equal, FindManyOptions, FindOneOptions, Repository } from "typeorm";
+import {
+    Between,
+    Equal,
+    FindManyOptions,
+    FindOneOptions,
+    LessThanOrEqual,
+    MoreThanOrEqual,
+    Repository,
+} from "typeorm";
 import { CartProductEntity } from "../cart/cart.entity";
 import { ShopEntity } from "../shop/shop.entity";
 import { UserEntity } from "../user/user.entity";
@@ -10,6 +18,7 @@ import {
     OrderState,
     OrderType,
 } from "./order.entity";
+import { FindOrderQueryDto } from "./order.dto";
 
 @Injectable()
 export class OrderService {
@@ -129,6 +138,33 @@ export class OrderService {
                 "NO_ORDER_FOUND",
                 HttpStatus.INTERNAL_SERVER_ERROR
             );
+        }
+
+        return orders;
+    }
+
+    async findOrders(query: FindOrderQueryDto): Promise<OrderEntity[]> {
+        let orders: OrderEntity[];
+        const filter: FindManyOptions<OrderEntity> = {};
+        filter.relations = {
+            products: { product: true, product_v: true },
+            shop: true,
+            user: true,
+        };
+        filter.where = {
+            date:
+                query.begin && query.end
+                    ? Between(new Date(query.begin), new Date(query.end))
+                    : query.begin
+                    ? MoreThanOrEqual(new Date(query.begin))
+                    : query.end
+                    ? LessThanOrEqual(new Date(query.end))
+                    : new Date(),
+        };
+        try {
+            orders = await this.orderRepo.find(filter);
+        } catch (error) {
+            throw new HttpException("NO_ORDER_FOUND", HttpStatus.CONFLICT);
         }
 
         return orders;
