@@ -18,7 +18,7 @@ import { User, UserIdentity } from "../auth/auth.decorator";
 import { AuthGuard } from "../auth/auth.guard";
 import { CartService } from "../cart/cart.service";
 import { UserService } from "../user/user.service";
-import { SaveLocalOrderDto } from "./order.dto";
+import { FindOrderQueryDto, SaveLocalOrderDto } from "./order.dto";
 import { OrderEntity, OrderState, OrderType } from "./order.entity";
 import { OrderService } from "./order.service";
 
@@ -112,10 +112,21 @@ export class OrderController {
     }
 
     @Get()
-    async findOrders(): Promise<ApiResponse<OrderEntity[]>> {
+    async findOrders(
+        @Query() query: FindOrderQueryDto
+    ): Promise<ApiResponse<OrderEntity[]>> {
+        if (!query.isValideDate())
+            throw new HttpException(
+                "INVALIDE_DATE_PROVIDED",
+                HttpStatus.BAD_REQUEST
+            );
+
         return {
             message: "ORDERS_FOUND",
-            data: await this.orderService.getOrderAllOrders(),
+            data:
+                query.end || query.begin || query.state || query.type
+                    ? await this.orderService.findOrders(query)
+                    : await this.orderService.getOrderAllOrders(),
         };
     }
 

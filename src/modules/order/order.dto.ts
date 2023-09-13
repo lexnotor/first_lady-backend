@@ -6,8 +6,10 @@ import {
     IsOptional,
     IsString,
     IsUUID,
+    Matches,
+    isDate,
 } from "class-validator";
-import { OrderType } from "./order.entity";
+import { OrderState, OrderType } from "./order.entity";
 
 class ResquestOrderDto {
     @IsArray()
@@ -39,4 +41,34 @@ class SaveLocalOrderDto {
     items_id: string[];
 }
 
-export { ResquestOrderDto, SaveLocalOrderDto };
+class FindOrderQueryDto {
+    @IsOptional()
+    @Matches(/^\d{4}-\d{2}-\d{2}$/)
+    begin?: string;
+
+    @IsOptional()
+    @Matches(/^\d{4}-\d{2}-\d{2}$/)
+    end?: string;
+
+    @IsOptional()
+    @IsEnum(OrderState)
+    state?: OrderState;
+
+    @IsOptional()
+    @IsEnum(OrderType)
+    type?: OrderType;
+
+    isValideDate() {
+        const begin = this.begin;
+        const end = this.end;
+        try {
+            if (!!begin && !isDate(new Date(begin))) return false;
+            if (!!end && !isDate(new Date(end))) return false;
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+}
+
+export { FindOrderQueryDto, ResquestOrderDto, SaveLocalOrderDto };
