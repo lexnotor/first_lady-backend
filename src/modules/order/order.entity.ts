@@ -57,7 +57,10 @@ class OrderProductEntity extends DefaultEntity {
     order: Relation<OrderEntity>;
 
     @ManyToOne(() => ProductVersionEntity)
-    @JoinColumn({ name: "product_v_id" })
+    @JoinColumn([
+        { name: "product_v_id", referencedColumnName: "id" },
+        { name: "product_v_key", referencedColumnName: "key_id" },
+    ])
     product_v: Relation<ProductVersionEntity>;
 
     @ManyToOne(() => ProductEntity)

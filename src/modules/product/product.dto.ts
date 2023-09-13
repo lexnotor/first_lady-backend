@@ -268,6 +268,16 @@ class UpdateVerisonDto {
     quantity?: number;
 }
 
+class AddPhotoDto {
+    @IsOptional()
+    @IsUUID()
+    productId?: string;
+
+    @IsOptional()
+    @IsUUID()
+    productVId?: string;
+}
+
 export {
     CreateCategoryDto,
     CreateProductDto,
@@ -277,5 +287,6 @@ export {
     FindProductVersionDto,
     UpdateCategoryDto,
     UpdateProductDto,
+    AddPhotoDto,
     UpdateVerisonDto,
 };

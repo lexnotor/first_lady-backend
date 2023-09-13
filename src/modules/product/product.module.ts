@@ -1,7 +1,12 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AuthModule } from "../auth/auth.module";
+import { VersionPhotoEntity } from "../photo/photo.entity";
+import { PhotoModule } from "../photo/photo.module";
 import { ShopModule } from "../shop/shop.module";
+import { UploaderModule } from "../uploader/uploader.module";
+import { CategoryService } from "./category.service";
+import { PrintableService } from "./printable.service";
 import { ProductController } from "./product.controller";
 import {
     CategoryEntity,
@@ -9,9 +14,7 @@ import {
     ProductVersionEntity,
 } from "./product.entity";
 import { ProductService } from "./product.service";
-import { PrintableService } from "./printable.service";
 import { ProductVersionService } from "./productVersion.service";
-import { CategoryService } from "./category.service";
 
 @Module({
     imports: [
@@ -19,9 +22,12 @@ import { CategoryService } from "./category.service";
             ProductEntity,
             CategoryEntity,
             ProductVersionEntity,
+            VersionPhotoEntity,
         ]),
         AuthModule,
         ShopModule,
+        UploaderModule,
+        PhotoModule,
     ],
     controllers: [ProductController],
     providers: [

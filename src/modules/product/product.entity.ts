@@ -5,8 +5,10 @@ import {
     JoinColumn,
     ManyToOne,
     OneToMany,
+    PrimaryColumn,
     Relation,
 } from "typeorm";
+import { VersionPhotoEntity } from "../photo/photo.entity";
 import { ShopEntity } from "../shop/shop.entity";
 
 @Entity("products")
@@ -50,6 +52,9 @@ class CategoryEntity extends DefaultEntity {
 
 @Entity("product_versions")
 class ProductVersionEntity extends DefaultEntity {
+    @PrimaryColumn()
+    key_id: string;
+
     @Column({ nullable: false })
     title: string;
 
@@ -62,8 +67,9 @@ class ProductVersionEntity extends DefaultEntity {
     @Column({ nullable: false, default: 0 })
     price: number;
 
-    @Column({ nullable: false })
-    key_id: string;
+    @ManyToOne(() => VersionPhotoEntity)
+    @JoinColumn({ name: "photo_id" })
+    photo: Relation<VersionPhotoEntity>;
 
     @ManyToOne(() => ProductEntity)
     @JoinColumn({ name: "product_id" })

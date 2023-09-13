@@ -5,12 +5,14 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { AuthModule } from "./modules/auth/auth.module";
 import { CartModule } from "./modules/cart/cart.module";
 import { DbconfigService } from "./modules/dbconfig/dbconfig.service";
+import { FactureModule } from "./modules/facture/facture.module";
 import { OrderModule } from "./modules/order/order.module";
+import { PaymentModule } from "./modules/payment/payment.module";
+import { PhotoModule } from "./modules/photo/photo.module";
 import { ProductModule } from "./modules/product/product.module";
 import { ShopModule } from "./modules/shop/shop.module";
+import { UploaderModule } from "./modules/uploader/uploader.module";
 import { UserModule } from "./modules/user/user.module";
-import { PaymentModule } from "./modules/payment/payment.module";
-import { FactureModule } from "./modules/facture/facture.module";
 
 @Module({
     imports: [
@@ -28,6 +30,8 @@ import { FactureModule } from "./modules/facture/facture.module";
         OrderModule,
         PaymentModule,
         FactureModule,
+        PhotoModule,
+        UploaderModule,
     ],
     controllers: [],
     providers: [],
