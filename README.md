@@ -1,5 +1,3 @@
-filtre & impression (commande)
-
 Nom du client sur la facture
 
 Ajouter image au produit
