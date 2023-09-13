@@ -1,6 +1,8 @@
+import { ProductVersionInfo } from "@/index";
+import { excludeFrom } from "@/utils/excludeColumnFromEntity";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { ProductEntity, ProductVersionEntity } from "./product.entity";
 import { InjectRepository } from "@nestjs/typeorm";
+import { randomUUID } from "crypto";
 import {
     Between,
     Equal,
@@ -9,17 +11,20 @@ import {
     ILike,
     Repository,
 } from "typeorm";
-import { ProductVersionInfo } from "@/index";
-import { randomUUID } from "crypto";
+import { VersionPhotoEntity } from "../photo/photo.entity";
+import { PhotoService } from "../photo/photo.service";
 import { FindProductVersionDto } from "./product.dto";
-import { excludeFrom } from "@/utils/excludeColumnFromEntity";
+import { ProductEntity, ProductVersionEntity } from "./product.entity";
 
 @Injectable()
 export class ProductVersionService {
     pageSize = 20;
     constructor(
         @InjectRepository(ProductVersionEntity)
-        private readonly product_vRepo: Repository<ProductVersionEntity>
+        private readonly product_vRepo: Repository<ProductVersionEntity>,
+        @InjectRepository(VersionPhotoEntity)
+        private readonly versionPhotoRepo: Repository<VersionPhotoEntity>,
+        private readonly photoService: PhotoService
     ) {}
 
     async createProductVersion(
@@ -54,7 +59,10 @@ export class ProductVersionService {
         let product_v: ProductVersionEntity;
         const filter: FindOneOptions<ProductVersionEntity> = {};
         filter.where = { id: Equal(versionId) };
-        filter.relations = { product: { category: true, shop: true } };
+        filter.relations = {
+            product: { category: true, shop: true },
+            photo: { photo: true },
+        };
         filter.select = {
             created_at: true,
             description: true,
@@ -69,7 +77,7 @@ export class ProductVersionService {
             product_v = await this.product_vRepo.findOneOrFail(filter);
         } catch (error) {
             throw new HttpException(
-                "PRODUCT_VERSION_NOT_FOUND",
+                `PRODUCT_VERSION_NOT_FOUND ${versionId}`,
                 HttpStatus.NOT_FOUND
             );
         }
@@ -83,7 +91,10 @@ export class ProductVersionService {
         let product_v: ProductVersionEntity;
         const filter: FindOneOptions<ProductVersionEntity> = {};
         filter.where = { key_id: Equal(keyId) };
-        filter.relations = { product: { category: true, shop: true } };
+        filter.relations = {
+            product: { category: true, shop: true },
+            photo: true,
+        };
         filter.select = {
             created_at: true,
             description: true,
@@ -134,7 +145,10 @@ export class ProductVersionService {
         filter.order = { created_at: "DESC" };
         filter.skip = (page - 1) * this.pageSize;
         filter.take = this.pageSize;
-        filter.relations = { product: { category: true, shop: true } };
+        filter.relations = {
+            product: { category: true, shop: true },
+            photo: true,
+        };
 
         try {
             products_v = await this.product_vRepo.find(filter);
@@ -158,6 +172,7 @@ export class ProductVersionService {
         product_n.price = payload.price ?? product_v.price;
         product_n.quantity = payload.quantity ?? product_v.quantity;
         product_n.product = product_v.product;
+        product_n.photo = product_v.photo;
 
         try {
             await this.product_vRepo.softRemove(product_v);
@@ -187,6 +202,7 @@ export class ProductVersionService {
         newProduct_v.quantity = +quantity + product_v.quantity;
         newProduct_v.product = product_v.product;
         newProduct_v.title = product_v.title;
+        newProduct_v.photo = product_v.photo;
 
         try {
             await this.product_vRepo.save(newProduct_v);
@@ -199,6 +215,39 @@ export class ProductVersionService {
         await this.deleteProductVersion(product_v.id);
 
         return this.getProductVersionById(newProduct_v.id);
+    }
+
+    async setPhoto(
+        file: Express.Multer.File,
+        productVId: string
+    ): Promise<ProductVersionEntity> {
+        const product_v = await this.updateProductVersion({
+            id: productVId,
+        });
+        const photo = await this.photoService.savePhoto(file);
+
+        const versionPhoto = new VersionPhotoEntity();
+        versionPhoto.photo = photo;
+        try {
+            await this.versionPhotoRepo.save(versionPhoto);
+        } catch (error) {
+            throw new HttpException(
+                "ERROR_TRYING_TO_SAVE_PHOTO_1",
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+        product_v.photo = versionPhoto;
+
+        try {
+            await this.product_vRepo.save(product_v);
+        } catch (error) {
+            throw new HttpException(
+                "ERROR_TRYING_TO_SAVE_PHOTO_2",
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+
+        return this.getProductVersionById(product_v.id);
     }
 
     async deleteProductVersion(productVId: string): Promise<string> {

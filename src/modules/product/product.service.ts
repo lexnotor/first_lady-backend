@@ -64,7 +64,7 @@ export class ProductService {
         filter.relations = {
             category: true,
             shop: true,
-            product_v: true,
+            product_v: { photo: { photo: true } },
         };
         filter.select = {
             id: true,
@@ -97,7 +97,11 @@ export class ProductService {
             { title: ILike(`%${text ?? ""}%`) },
             { category: { title: ILike(`%${text ?? ""}%`) } },
         ];
-        filter.relations = { shop: true, category: true, product_v: true };
+        filter.relations = {
+            shop: true,
+            category: true,
+            product_v: { photo: { photo: true } },
+        };
         filter.select = {
             id: true,
             brand: true,

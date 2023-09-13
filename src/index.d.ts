@@ -63,6 +63,16 @@ export interface ProductVersionInfo extends DefaultInfo {
     price?: number;
     key_id?: string;
     product?: ProductInfo | string;
+    photo?: VersionPhotoInfo;
+}
+export interface VersionPhotoInfo extends DefaultInfo {
+    photo?: PhotoInfo;
+    products_v?: ProductVersionInfo[];
+}
+export interface PhotoInfo extends DefaultInfo {
+    link?: string;
+    description?: string;
+    meta: string;
 }
 export interface CategoryInfo extends DefaultInfo {
     title?: string;
@@ -122,4 +132,14 @@ export interface OrderProductInfo extends DefaultInfo {
     product_v: ProductVersionInfo | string[];
     product: ProductInfo | string[];
     quantity: number;
+}
+
+export interface FileMeta {
+    size: number;
+    filename: string;
+    url: string;
+    mimetype: string;
+    public_id?: string;
+    format?: string;
+    type?: string;
 }

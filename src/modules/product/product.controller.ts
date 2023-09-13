@@ -4,17 +4,23 @@ import {
     Controller,
     Delete,
     Get,
+    HttpException,
+    HttpStatus,
     Param,
     Post,
     Put,
     Query,
+    UploadedFile,
     UseGuards,
+    UseInterceptors,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { User, UserIdentity } from "../auth/auth.decorator";
 import { AuthGuard } from "../auth/auth.guard";
 import { ShopService } from "../shop/shop.service";
 import { PrintableService } from "./printable.service";
 import {
+    AddPhotoDto,
     CreateCategoryDto,
     CreateProductDto,
     CreateVersionDto,
@@ -32,6 +38,7 @@ import {
 import { ProductService } from "./product.service";
 import { ProductVersionService } from "./productVersion.service";
 import { CategoryService } from "./category.service";
+import { isUUID } from "class-validator";
 
 @Controller("product")
 export class ProductController {
@@ -122,18 +129,20 @@ export class ProductController {
     @Post("version/new")
     async createVersion(
         @Body() payload: CreateVersionDto
-    ): Promise<ApiResponse<ProductEntity>> {
+    ): Promise<ApiResponse<ProductVersionEntity>> {
         const product = await this.productService.getProductById(
             payload.getproduct()
         );
-        await this.productVersionService.createProductVersion(
+        const product_v = await this.productVersionService.createProductVersion(
             payload.getVersion(),
             product
         );
 
         return {
             message: "PRODUCT_VERSION_CREATED",
-            data: await this.productService.getProductById(product.id),
+            data: await this.productVersionService.getProductVersionById(
+                product_v.id
+            ),
         };
     }
 
@@ -166,7 +175,7 @@ export class ProductController {
         };
     }
 
-    @Put("version/:id")
+    @Put("version/update/:id")
     @UseGuards(AuthGuard)
     async updateProductVersion(
         @Param("id") versionId: string,
@@ -201,10 +210,27 @@ export class ProductController {
         };
     }
 
-    @Post("version/photo")
+    @Put("version/photo")
     @UseGuards(AuthGuard)
-    async setPhoto(@Query() data: any) {
-        return data;
+    @UseInterceptors(FileInterceptor("file"))
+    async setPhoto(
+        @Query() query: AddPhotoDto,
+        @UploadedFile() file: Express.Multer.File
+    ): Promise<ApiResponse<ProductVersionEntity>> {
+        if (!isUUID(query.productVId))
+            throw new HttpException(
+                "PRODUCT_VERSION_INVALIDE",
+                HttpStatus.BAD_REQUEST
+            );
+
+        return {
+            message: "PHOTO_UPDATED",
+            data: await this.productVersionService.setPhoto(
+                file,
+                query.productVId
+            ),
+            extra: query,
+        };
     }
 
     // -----------------------------------------
