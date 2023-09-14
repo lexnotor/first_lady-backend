@@ -87,7 +87,7 @@ export class OrderService {
         const filter: FindOneOptions<OrderEntity> = {};
         filter.where = { id: Equal(orderId) };
         filter.relations = {
-            products: { product: true, product_v: true },
+            products: { product: true, product_v: { photo: { photo: true } } },
             shop: true,
             user: true,
         };
@@ -106,7 +106,11 @@ export class OrderService {
         let orders: OrderEntity[];
         const filter: FindManyOptions<OrderEntity> = {};
         filter.where = { user: Equal(userId) };
-        filter.relations = { products: true, shop: true, user: true };
+        filter.relations = {
+            products: { product: true, product_v: { photo: { photo: true } } },
+            shop: true,
+            user: true,
+        };
 
         try {
             orders = await this.orderRepo.find(filter);
@@ -121,7 +125,9 @@ export class OrderService {
         let orderProduct: OrderProductEntity[];
         const filter: FindOneOptions<OrderEntity> = {};
         filter.where = { id: Equal(orderId) };
-        filter.relations = { products: { product: true, product_v: true } };
+        filter.relations = {
+            products: { product: true, product_v: { photo: { photo: true } } },
+        };
         filter.withDeleted = true;
 
         try {
@@ -137,7 +143,11 @@ export class OrderService {
     async getOrderAllOrders(): Promise<OrderEntity[]> {
         let orders: OrderEntity[];
         const filter: FindManyOptions<OrderEntity> = {};
-        filter.relations = { shop: true, products: true, user: true };
+        filter.relations = {
+            shop: true,
+            products: { product: true, product_v: { photo: { photo: true } } },
+            user: true,
+        };
 
         try {
             orders = await this.orderRepo.find(filter);
@@ -155,7 +165,7 @@ export class OrderService {
         let orders: OrderEntity[];
         const filter: FindManyOptions<OrderEntity> = {};
         filter.relations = {
-            products: { product: true, product_v: true },
+            products: { product: true, product_v: { photo: { photo: true } } },
             shop: true,
             user: true,
         };
