@@ -93,7 +93,7 @@ export class ProductVersionService {
         filter.where = { key_id: Equal(keyId) };
         filter.relations = {
             product: { category: true, shop: true },
-            photo: true,
+            photo: { photo: true },
         };
         filter.select = {
             created_at: true,
@@ -147,7 +147,7 @@ export class ProductVersionService {
         filter.take = this.pageSize;
         filter.relations = {
             product: { category: true, shop: true },
-            photo: true,
+            photo: { photo: true },
         };
 
         try {

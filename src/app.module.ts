@@ -5,7 +5,6 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { AuthModule } from "./modules/auth/auth.module";
 import { CartModule } from "./modules/cart/cart.module";
 import { DbconfigService } from "./modules/dbconfig/dbconfig.service";
-import { FactureModule } from "./modules/facture/facture.module";
 import { OrderModule } from "./modules/order/order.module";
 import { PaymentModule } from "./modules/payment/payment.module";
 import { PhotoModule } from "./modules/photo/photo.module";
@@ -29,7 +28,6 @@ import { UserModule } from "./modules/user/user.module";
         CartModule,
         OrderModule,
         PaymentModule,
-        FactureModule,
         PhotoModule,
         UploaderModule,
     ],
