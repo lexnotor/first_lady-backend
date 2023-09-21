@@ -141,6 +141,7 @@ export class ProductVersionService {
             : [
                   { description: ILike(`%${text ?? ""}%`) },
                   { title: ILike(`%${text ?? ""}%`) },
+                  { product: { title: ILike(`%${text ?? ""}%`) } },
               ];
         filter.order = { created_at: "DESC" };
         filter.skip = (page - 1) * this.pageSize;

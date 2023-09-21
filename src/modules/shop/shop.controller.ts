@@ -16,25 +16,27 @@ export class ShopController {
         private readonly roleService: RoleService
     ) {}
 
+    // cet endpoint permet de créer une boutique
     @UseGuards(AuthGuard)
     @Post("new")
     async createShop(
         @Body() payload: CreateShopDto,
         @User() user: UserIdentity
     ): Promise<ShopEntity> {
-        // create shop
+        // on cree la boutique
         const shop = await this.shopService.createShop(payload);
 
-        // add user
+        // on ajouter l'utilisateur à la boutique
         const userShop = await this.userService.addUserToShop(shop, user.id);
 
-        // assign user as owner
+        // on assigne l'utilisateur comme un proprietaire
         const [role] = await this.roleService.findRoles({ title: "OWNER" });
         await this.roleService.assignRoleTo(userShop, role);
 
         return shop;
     }
 
+    // cet endpoint permet
     @Get()
     async findShop(
         @Query("text") text: string
@@ -45,6 +47,7 @@ export class ShopController {
         };
     }
 
+    // cet endpoint renvoi des statisques
     @Get()
     async loadShopStats(): Promise<ApiResponse> {
         return {

@@ -15,7 +15,7 @@ import {
     UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { User, UserIdentity } from "../auth/auth.decorator";
+import { HasRole, User, UserIdentity } from "../auth/auth.decorator";
 import { AuthGuard } from "../auth/auth.guard";
 import { ShopService } from "../shop/shop.service";
 import { PrintableService } from "./printable.service";
@@ -53,41 +53,44 @@ export class ProductController {
     // -----------------------------------------
     // ----------- PRODUCT ---------------------
     // -----------------------------------------
+    // cet endpoint permet de créer un produit dans la base de données
+    // il faudra ensuite créer une version du produit ailleur
     @Post("new")
+    @HasRole("OWNER")
     @UseGuards(AuthGuard)
     async createProduct(
         @Body() payload: CreateProductDto,
         @User() user: UserIdentity
     ): Promise<ApiResponse<ProductEntity>> {
+        // on extrait les informations dans le body de la requête
         const product_ = payload.getProduct(),
-            // product_v = payload.getProduct_v(),
             categoryId = payload.getCategoryId(),
             shopId = user.shop;
 
-        // find category
+        // on recherche la categorie  dans le base de données
+        // NB: seulement si c'est specifier
         const category = categoryId
             ? await this.categoryService.getCategoryById(categoryId)
             : undefined;
 
-        // found shop
+        // on recherche la boutique dans la base de données
         const shop = await this.shopService.getShopById(shopId);
 
-        // create product
+        // finalement on créer le produit dans la base données avec toutes ces informations
         const product = await this.productService.createProduct(
             product_,
             shop,
             category
         );
 
-        // create version
-        // await this.productService.createProductVersion(product_v, product);
-
+        // on retourne les données du produit créer
         return {
             message: "PRODUCT_CREATED",
             data: await this.productService.getProductById(product.id),
         };
     }
 
+    // cet endpoint permet de chercher les produits suivant des filtres données
     @Get()
     async findProduct(
         @Query() query: FindProductDto
@@ -101,43 +104,56 @@ export class ProductController {
         return { message: "PRODUCT_FOUND", data: products };
     }
 
+    // cet endpoint permet de mettre à jour un produit donné
     @Put("update/:id")
     @UseGuards(AuthGuard)
+    @HasRole("OWNER")
     async updateProduct(
         @Body() payload: UpdateProductDto,
         @Param("id") productId: string
     ): Promise<ApiResponse<ProductEntity>> {
+        // si l'utilisateur à specifié une nouvelle category
+        // alors on la cherche dans la base de données
         const category = payload.category
             ? await this.categoryService.getCategoryById(payload.category)
             : undefined;
 
+        // on met à jour le produit
+        const product = await this.productService.updateProduct(
+            {
+                ...payload.getProduct(),
+                id: productId,
+            },
+            category
+        );
+
+        // on retourne le produit à jour
         return {
             message: "PRODUCT_UPDATED",
-            data: await this.productService.updateProduct(
-                {
-                    ...payload.getProduct(),
-                    id: productId,
-                },
-                category
-            ),
+            data: await this.productService.getProductById(product.id),
         };
     }
 
     // -----------------------------------------
     // ----------- VERSION ---------------------
     // -----------------------------------------
+    // cet endpoint permet de créer une nouvelle variante du produit
     @Post("version/new")
+    @HasRole("OWNER")
     async createVersion(
         @Body() payload: CreateVersionDto
     ): Promise<ApiResponse<ProductVersionEntity>> {
+        // on cherche un produit dans la base de donées
         const product = await this.productService.getProductById(
             payload.getproduct()
         );
+        // on enregistrer le produit
         const product_v = await this.productVersionService.createProductVersion(
             payload.getVersion(),
             product
         );
 
+        // on retourne la nouvelle variante
         return {
             message: "PRODUCT_VERSION_CREATED",
             data: await this.productVersionService.getProductVersionById(
@@ -146,12 +162,15 @@ export class ProductController {
         };
     }
 
+    // cet endpoint permet de trouver les variants des produits
     @Get("/version")
     async findProductVersion(
         @Query() query: FindProductVersionDto
     ): Promise<ApiResponse<ProductVersionEntity[] | ProductVersionEntity>> {
+        // on extrait les principaux element de recherche
         const { id: productVID, page, text, ...filter } = query;
 
+        // on effectue la recherche dans la BD en fonction de ce qui est fournit
         const products = productVID
             ? await this.productVersionService.getProductVersionById(productVID)
             : filter.maxPrice | filter.maxQty | filter.minPrice | filter.minQty
@@ -165,6 +184,7 @@ export class ProductController {
         return { message: "PRODUCT_VERSION_FOUND", data: products };
     }
 
+    // cet endpoint renvoie un resumé des produits
     @Get("summary")
     async getSummary(
         @Query() query: FindProductVersionDto
@@ -175,30 +195,40 @@ export class ProductController {
         };
     }
 
+    // cet endpoint permet de mettre à jour une variante d'un produit
+    // il sert donc aussi lors de l'approvisionnement
     @Put("version/update/:id")
     @UseGuards(AuthGuard)
+    @HasRole("OWNER")
     async updateProductVersion(
         @Param("id") versionId: string,
         @Body() payload: UpdateVerisonDto
     ): Promise<ApiResponse<ProductVersionEntity>> {
+        // Si c'est l'approvisionnement qui est effectué alors:
         const version = payload.quantity
             ? await this.productVersionService.addQuantity(
                   versionId,
                   payload.quantity,
                   payload.price
               )
-            : await this.productVersionService.updateProductVersion({
+            : // sinon c'est autre chose:
+              await this.productVersionService.updateProductVersion({
                   ...payload,
                   id: versionId,
               });
+        // enfin on retourne la nouvelle variant à jour
         return {
             message: "PRODUCT_UPDATED",
-            data: version,
+            data: await this.productVersionService.getProductVersionById(
+                version.id
+            ),
         };
     }
 
+    // cet endpoint permet de supprimer une variant du produit
     @Delete("version/:id")
     @UseGuards(AuthGuard)
+    @HasRole("OWNER")
     async deleteProductVersion(
         @Param("id") versionId: string
     ): Promise<ApiResponse<string>> {
@@ -210,24 +240,33 @@ export class ProductController {
         };
     }
 
+    // cet endpoint permet d'ajouter la photo sur une variant
     @Put("version/photo")
     @UseGuards(AuthGuard)
+    @HasRole("OWNER")
     @UseInterceptors(FileInterceptor("file"))
     async setPhoto(
         @Query() query: AddPhotoDto,
         @UploadedFile() file: Express.Multer.File
     ): Promise<ApiResponse<ProductVersionEntity>> {
+        // Si on a pas preciser l'id de la variante
+        // alors on retourne une erreur
         if (!isUUID(query.productVId))
             throw new HttpException(
                 "PRODUCT_VERSION_INVALIDE",
                 HttpStatus.BAD_REQUEST
             );
 
+        // on enregistre la photo
+        const version = await this.productVersionService.setPhoto(
+            file,
+            query.productVId
+        );
+        // ensuite on retourne la nouvelle version avec photo
         return {
             message: "PHOTO_UPDATED",
-            data: await this.productVersionService.setPhoto(
-                file,
-                query.productVId
+            data: await this.productVersionService.getProductVersionById(
+                version.id
             ),
             extra: query,
         };
@@ -236,34 +275,39 @@ export class ProductController {
     // -----------------------------------------
     // ----------- CATEGORY --------------------
     // -----------------------------------------
-
+    // cet enpoint permet de créer une category de produit
     @Post("category/new")
     @UseGuards(AuthGuard)
+    @HasRole("OWNER")
     async createCategory(
         @Body() payload: CreateCategoryDto,
         @User() user: UserIdentity
     ): Promise<ApiResponse<CategoryEntity>> {
-        // find shop
+        // on recupere l'id de la boutique dans la BD
         const shop = await this.shopService.getShopById(user.shop);
 
-        // create category
+        // on créer la category associer à la boutique
         const category = await this.categoryService.createCategory(
             payload.getCategory(),
             shop
         );
 
-        category.shop = undefined;
-
+        // on retourne la nouvelle category
         return {
             message: "CATEGORY_CREATED",
-            data: category,
+            data: await this.categoryService.getCategoryById(category.id),
         };
     }
+
+    // cet endpoint permet de chercher des category dans la BD
     @Get("category")
     async findCategory(
         @Query() query: FindCategoryDto
     ): Promise<ApiResponse<CategoryEntity[] | CategoryEntity>> {
+        //on extrait les fitrers
         const { shop: shopId, text, id: categId, page } = query;
+
+        // on fonction de ce qui est donnée, on effectue la recheche
         const categories = categId
             ? await this.categoryService.getCategoryById(categId)
             : await this.categoryService.findCategory(text, shopId, page);
@@ -274,6 +318,7 @@ export class ProductController {
         };
     }
 
+    // cet enpoint renvoi des statistique sur les categories
     @Get("category/count")
     async countProductCategorie(): Promise<
         ApiResponse<{ id: string; title: string; count: string }>
@@ -287,6 +332,7 @@ export class ProductController {
     // -----------------------------------------
     // ----------- ALL -------------------------
     // -----------------------------------------
+    // cet end point renvoi les statistiques sur les produits, variants et categories
     @Get("stats")
     async getProductStats(): Promise<ApiResponse> {
         const stat = await this.productService.loadProductStat();

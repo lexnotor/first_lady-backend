@@ -14,7 +14,7 @@ import {
     UseGuards,
 } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
-import { User, UserIdentity } from "../auth/auth.decorator";
+import { HasRole, User, UserIdentity } from "../auth/auth.decorator";
 import { AuthGuard } from "../auth/auth.guard";
 import { CartService } from "../cart/cart.service";
 import { UserService } from "../user/user.service";
@@ -24,12 +24,17 @@ import { OrderService } from "./order.service";
 
 @Controller("order")
 export class OrderController {
+    // Dans ce controller on aura besoin des services
+    //      OrderService => pour gèrer les commandes
+    //      CartService => pour gèrer les pagnier
+    //      UserService => pour recuperer les utilisateurs dans la BD
     constructor(
         private orderService: OrderService,
         private cartService: CartService,
         private userSerivce: UserService
     ) {}
 
+    // recupere l'evenement emit sur le serveur, après chaque paiement
     @OnEvent("order/new")
     @HttpCode(200)
     async saveOrder({
@@ -39,15 +44,20 @@ export class OrderController {
         user_id: string;
         items_id: string[];
     }) {
+        // on recupere tous les produits payés
         const items = await Promise.all(
             items_id.map((item) => this.cartService.getFullItemById(item))
         );
 
+        // on extrait l'id de la boutique
         const shop = items[0].shop;
+        // on extrait l'id du client
         const user = await this.userSerivce.getUserById(user_id);
 
+        // on enregistre la commande dans la base de données
         await this.orderService.addOrder(user, undefined, shop, ...items);
 
+        // on efface ensuite elements dans le pagnier
         await Promise.all(
             items.map((item) => this.cartService.deleteItem(item.id))
         );
@@ -55,8 +65,11 @@ export class OrderController {
         return true;
     }
 
+    // cet endpoint permet d'enregistrer les achats effectué directement dans la boutique
+    // similaire à saveOrder
     @Post("local")
     @UseGuards(AuthGuard)
+    @HasRole("OWNER")
     async saveLocalOrder(
         @Body() payload: SaveLocalOrderDto,
         @User() { id: UserId }: UserIdentity
@@ -92,6 +105,8 @@ export class OrderController {
         };
     }
 
+    // cet endpoint permet de recuperer la liste de commande effectué par
+    // un utilisateur connecté (admin ou client)
     @Get("mine")
     @UseGuards(AuthGuard)
     async getMyOrder(
@@ -103,6 +118,7 @@ export class OrderController {
         };
     }
 
+    // cet endpoint permet de recuperer un resumé des commandes enregistré
     @Get("stats")
     async getOrderStats(@Query("year") year: number): Promise<ApiResponse> {
         return {
@@ -111,6 +127,8 @@ export class OrderController {
         };
     }
 
+    // TODO add guard
+    // cet endoint permet de recuperer une commande precisée par son id
     @Get("one/:orderId")
     async getOneOrder(
         @Param("orderId") orderId: string
@@ -121,10 +139,15 @@ export class OrderController {
         };
     }
 
+    // cet endpoint permet de chercher des commandes dans la base de données
+    // les filtres de recherche sont dans FindOrderQueryDto
     @Get()
+    @HasRole("OWNER")
+    @UseGuards(AuthGuard)
     async findOrders(
         @Query() query: FindOrderQueryDto
     ): Promise<ApiResponse<OrderEntity | OrderEntity[]>> {
+        // en cas de filtrer par date, on verifie le format
         if (!query.isValideDate())
             throw new HttpException(
                 "INVALIDE_DATE_PROVIDED",
@@ -140,7 +163,9 @@ export class OrderController {
         };
     }
 
+    // cet endpoint permet d'annuler une commande
     @Put("cancel/:id")
+    @UseGuards(AuthGuard)
     async cancelOrder(
         @Param() orderId: string
     ): Promise<ApiResponse<OrderEntity>> {
@@ -152,7 +177,9 @@ export class OrderController {
             ),
         };
     }
+    // cet endpoint permet de marquer terminer, une commande
     @Put("done/:id")
+    @UseGuards(AuthGuard)
     async finishOrder(
         @Param() orderId: string
     ): Promise<ApiResponse<OrderEntity>> {
@@ -165,17 +192,20 @@ export class OrderController {
         };
     }
 
+    // cet endpoint permet de supprimer une commande dans la base données
     @Delete(":id")
     @UseGuards(AuthGuard)
     async deleteOrder(
         @Param("id") orderId: string,
         @User() user: UserIdentity
     ): Promise<ApiResponse<string>> {
+        // on recupere la commande dans la base de données
         const order = await this.orderService.getOrderById(orderId);
-
+        // on verifie qu'elle appartient à l'utilisateur connectée
         if (order.user.id != user.id)
             throw new HttpException("NOT_YOUR_ORDER", HttpStatus.CONFLICT);
 
+        // ensuite on la supprime
         return {
             message: "ORDER_DELETED",
             data: await this.orderService.deleteOrder(order.id),
