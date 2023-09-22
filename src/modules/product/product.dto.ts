@@ -209,6 +209,11 @@ class FindProductVersionDto {
     @IsOptional()
     @IsString()
     @IsUUID()
+    categoryId: string;
+
+    @IsOptional()
+    @IsString()
+    @IsUUID()
     id?: string;
 
     @IsOptional()
@@ -228,7 +233,7 @@ class FindProductVersionDto {
     maxPrice?: number;
 
     @IsOptional()
-    page = 1;
+    page = 0;
 }
 
 class FindCategoryDto {
@@ -279,6 +284,7 @@ class AddPhotoDto {
 }
 
 export {
+    AddPhotoDto,
     CreateCategoryDto,
     CreateProductDto,
     CreateVersionDto,
@@ -287,6 +293,5 @@ export {
     FindProductVersionDto,
     UpdateCategoryDto,
     UpdateProductDto,
-    AddPhotoDto,
     UpdateVerisonDto,
 };

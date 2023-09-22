@@ -173,7 +173,11 @@ export class ProductController {
         // on effectue la recherche dans la BD en fonction de ce qui est fournit
         const products = productVID
             ? await this.productVersionService.getProductVersionById(productVID)
-            : filter.maxPrice | filter.maxQty | filter.minPrice | filter.minQty
+            : filter.maxPrice ||
+              filter.maxQty ||
+              filter.minPrice ||
+              filter.minQty ||
+              filter.categoryId
             ? await this.productVersionService.findProductVersion(
                   text,
                   page,
