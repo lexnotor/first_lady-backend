@@ -120,7 +120,7 @@ export class ProductVersionService {
 
     async findProductVersion(
         text: string,
-        page = 1,
+        page = 0,
         reqFilters?: Partial<FindProductVersionDto>
     ): Promise<ProductVersionEntity[]> {
         let products_v: ProductVersionEntity[];
@@ -137,14 +137,20 @@ export class ProductVersionService {
                       reqFilters.minPrice ?? 0,
                       reqFilters.maxPrice ?? 9e8
                   ),
+                  product: {
+                      category: reqFilters.categoryId
+                          ? Equal(reqFilters.categoryId)
+                          : undefined,
+                  },
               }
             : [
                   { description: ILike(`%${text ?? ""}%`) },
                   { title: ILike(`%${text ?? ""}%`) },
+                  { product: { title: ILike(`%${text ?? ""}%`) } },
               ];
         filter.order = { created_at: "DESC" };
-        filter.skip = (page - 1) * this.pageSize;
-        filter.take = this.pageSize;
+        page && (filter.skip = (page - 1) * this.pageSize);
+        page && (filter.take = this.pageSize);
         filter.relations = {
             product: { category: true, shop: true },
             photo: { photo: true },

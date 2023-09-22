@@ -76,15 +76,8 @@ export class CategoryService {
             },
         ];
         filter.order = { created_at: "DESC" };
-        filter.select = {
-            title: true,
-            description: true,
-            created_at: true,
-            id: true,
-            shop: { id: true, title: true },
-        };
-        filter.skip = (page - 1) * this.pageSize;
-        filter.take = this.pageSize;
+        (page - 1) * this.pageSize;
+        // filter.take = this.pageSize;
         filter.relations = { shop: true };
 
         try {

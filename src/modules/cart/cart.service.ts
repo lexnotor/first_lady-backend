@@ -176,16 +176,19 @@ export class CartService {
         let items: CartProductEntity[];
         const filter: FindManyOptions<CartProductEntity> = {};
         filter.where = { cart: Equal(cartId) };
-        filter.select = {
-            id: true,
-            created_at: true,
-            product: { id: true, title: true },
+        filter.relations = {
+            cart: true,
+            product: { shop: true, category: true },
+            product_v: { photo: { photo: true } },
+            shop: true,
         };
         try {
-            items;
-        } catch (error) {}
+            items = await this.cartProductRepo.find(filter);
+        } catch (error) {
+            throw new HttpException("NO_ITEMS_FOUND", HttpStatus.NOT_FOUND);
+        }
 
-        return null;
+        return items;
     }
 
     async deleteItem(item_id: string): Promise<string> {
