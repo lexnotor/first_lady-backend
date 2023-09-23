@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Put, UseGuards } from "@nestjs/common";
 import { RoleService } from "./role.service";
-import { CreateRoleDto } from "./user.dto";
+import { CreateRoleDto, UpdateUserDto } from "./user.dto";
 import { RoleEntity, UserEntity } from "./user.entity";
 import { ApiResponse } from "@/index";
 import { UserService } from "./user.service";
@@ -30,6 +30,18 @@ export class UserController {
         return {
             message: "YOUR_ARE_LOGIN",
             data: await this.userService.getUserById(user.id),
+        };
+    }
+
+    @Put("me")
+    @UseGuards(AuthGuard)
+    async updateMe(
+        @User() user: UserIdentity,
+        @Body() payload: UpdateUserDto
+    ): Promise<ApiResponse<UserEntity>> {
+        return {
+            message: "USER_UPDATED",
+            data: await this.userService.updateUser(payload, user.id),
         };
     }
 
