@@ -140,7 +140,8 @@ export class ProductVersionService {
                   product: {
                       category: reqFilters.categoryId
                           ? Equal(reqFilters.categoryId)
-                          : undefined,         
+                          : undefined,
+title: ILike(`%${text ?? ""}%`)                   
 				},
               }
             : [
