@@ -1,3 +1,4 @@
+import { CategoryEntity } from "@/modules/product/product.entity";
 import { ShopEntity } from "@/modules/shop/shop.entity";
 import {
     RoleEntity,
@@ -21,6 +22,7 @@ export class SeedData1695627807936 implements MigrationInterface {
         const user_shop = await this.addUserToShop(queryRunner, shop, user);
 
         await this.assignShopToUser(queryRunner, role, user_shop);
+        await this.addMainCategories(queryRunner, shop);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
@@ -37,10 +39,42 @@ export class SeedData1695627807936 implements MigrationInterface {
                 .getRepository(UserShopEntity)
                 .findOneBy({ shop: Equal(shop?.id), user: Equal(user?.id) });
 
+        await this.deleteMainCategories(queryRunner, shop);
         await this.dismissShopToUser(queryRunner, role, user_shop);
         await this.removeUserFromShop(queryRunner, shop, user);
         await this.deleteMainShop(queryRunner);
         await this.deleteMainUser(queryRunner);
+    }
+
+    async createMainUser(queryRunner: QueryRunner): Promise<UserEntity> {
+        const user = await queryRunner.manager
+            .getRepository(UserEntity)
+            .findOneBy({ username: "admin" });
+
+        if (!user) {
+            await queryRunner.manager.getRepository(UserEntity).insert({
+                email: "admin@admin.com",
+                username: "admin",
+                address: "PREMIERE DAME",
+                names: "Administateur",
+                secret: this.hashSecret("@dmin4321"),
+            });
+        }
+
+        return await queryRunner.manager
+            .getRepository(UserEntity)
+            .findOneBy({ username: "admin" });
+    }
+    async deleteMainUser(queryRunner: QueryRunner): Promise<string> {
+        const user = await queryRunner.manager
+            .getRepository(UserEntity)
+            .findOneBy({ username: "admin" });
+
+        if (user) {
+            await queryRunner.manager.getRepository(UserEntity).remove(user);
+        }
+
+        return user?.id;
     }
 
     async createOwnerRole(queryRunner: QueryRunner): Promise<RoleEntity> {
@@ -98,6 +132,37 @@ export class SeedData1695627807936 implements MigrationInterface {
         return shop?.id;
     }
 
+    async addUserToShop(
+        queryRunner: QueryRunner,
+        shop: ShopEntity,
+        user: UserEntity
+    ): Promise<UserShopEntity> {
+        const user_shop = await queryRunner.manager
+            .getRepository(UserShopEntity)
+            .findOneBy({ shop: Equal(shop?.id), user: Equal(user?.id) });
+        if (!user_shop)
+            await queryRunner.manager
+                .getRepository(UserShopEntity)
+                .insert({ shop, user });
+        return await queryRunner.manager
+            .getRepository(UserShopEntity)
+            .findOneBy({ shop: Equal(shop?.id), user: Equal(user?.id) });
+    }
+    async removeUserFromShop(
+        queryRunner: QueryRunner,
+        shop: ShopEntity,
+        user: UserEntity
+    ): Promise<string> {
+        const user_shop = await queryRunner.manager
+            .getRepository(UserShopEntity)
+            .findOneBy({ shop: Equal(shop?.id), user: Equal(user?.id) });
+        if (user_shop)
+            await queryRunner.manager
+                .getRepository(UserShopEntity)
+                .remove(user_shop);
+        return user_shop?.id;
+    }
+
     async assignShopToUser(
         queryRunner: QueryRunner,
         role: RoleEntity,
@@ -142,66 +207,80 @@ export class SeedData1695627807936 implements MigrationInterface {
         return user_shop_role?.id;
     }
 
-    async addUserToShop(
-        queryRunner: QueryRunner,
-        shop: ShopEntity,
-        user: UserEntity
-    ): Promise<UserShopEntity> {
-        const user_shop = await queryRunner.manager
-            .getRepository(UserShopEntity)
-            .findOneBy({ shop: Equal(shop?.id), user: Equal(user?.id) });
-        if (!user_shop)
-            await queryRunner.manager
-                .getRepository(UserShopEntity)
-                .insert({ shop, user });
-        return await queryRunner.manager
-            .getRepository(UserShopEntity)
-            .findOneBy({ shop: Equal(shop?.id), user: Equal(user?.id) });
+    async addMainCategories(queryRunner: QueryRunner, shop: ShopEntity) {
+        const data = [
+            {
+                title: "PRÊT A PORTER",
+                description: "Vêtement déjà cousu, et prët à porter",
+            },
+            {
+                title: "SUPERWAX",
+                description: "SUPERWAX original, première qualité",
+            },
+            {
+                title: "WOODON",
+                description: "Pagne Woodon, Pour modéle Woodon et autre, Wax",
+            },
+        ];
+        const categories = await queryRunner.manager
+            .getRepository(CategoryEntity)
+            .findBy(
+                data.map((item) => ({
+                    title: item?.title,
+                    shop: Equal(shop?.id),
+                }))
+            );
+
+        return Promise.all(
+            data.map(async (temp) => {
+                let current = categories.find(
+                    (item) => item?.title == temp?.title
+                );
+
+                if (!current) {
+                    current = new CategoryEntity();
+                    current.title = temp?.title;
+                    current.description = temp?.description;
+                    current.shop = shop;
+                    await queryRunner.manager
+                        .getRepository(CategoryEntity)
+                        .save(current);
+                }
+
+                return current;
+            })
+        );
     }
-    async removeUserFromShop(
-        queryRunner: QueryRunner,
-        shop: ShopEntity,
-        user: UserEntity
-    ): Promise<string> {
-        const user_shop = await queryRunner.manager
-            .getRepository(UserShopEntity)
-            .findOneBy({ shop: Equal(shop?.id), user: Equal(user?.id) });
-        if (user_shop)
-            await queryRunner.manager
-                .getRepository(UserShopEntity)
-                .remove(user_shop);
-        return user_shop?.id;
-    }
 
-    async createMainUser(queryRunner: QueryRunner): Promise<UserEntity> {
-        const user = await queryRunner.manager
-            .getRepository(UserEntity)
-            .findOneBy({ username: "admin" });
+    async deleteMainCategories(queryRunner: QueryRunner, shop: ShopEntity) {
+        const data = [
+            {
+                title: "PRÊT A PORTER",
+                description: "Vêtement déjà cousu, et prët à porter",
+            },
+            {
+                title: "SUPERWAX",
+                description: "SUPERWAX original, première qualité",
+            },
+            {
+                title: "WOODON",
+                description: "Pagne Woodon, Pour modéle Woodon et autre, Wax",
+            },
+        ];
+        const categories = await queryRunner.manager
+            .getRepository(CategoryEntity)
+            .findBy(
+                data.map((item) => ({
+                    title: item?.title,
+                    shop: Equal(shop?.id),
+                }))
+            );
 
-        if (!user) {
-            await queryRunner.manager.getRepository(UserEntity).insert({
-                email: "admin@admin.com",
-                username: "admin",
-                address: "PREMIERE DAME",
-                names: "Administateur",
-                secret: this.hashSecret("@dmin4321"),
-            });
-        }
+        await queryRunner.manager
+            .getRepository(CategoryEntity)
+            .remove(categories);
 
-        return await queryRunner.manager
-            .getRepository(UserEntity)
-            .findOneBy({ username: "admin" });
-    }
-    async deleteMainUser(queryRunner: QueryRunner): Promise<string> {
-        const user = await queryRunner.manager
-            .getRepository(UserEntity)
-            .findOneBy({ username: "admin" });
-
-        if (user) {
-            await queryRunner.manager.getRepository(UserEntity).remove(user);
-        }
-
-        return user?.id;
+        return categories?.map((item) => item?.id);
     }
 
     hashSecret(secret: string) {
