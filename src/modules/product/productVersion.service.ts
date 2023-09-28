@@ -127,22 +127,40 @@ export class ProductVersionService {
         const filter: FindManyOptions<ProductVersionEntity> = {};
 
         filter.where = reqFilters
-            ? {
-                  title: ILike(`%${text ?? ""}%`),
-                  quantity: Between(
-                      reqFilters.minQty ?? 0,
-                      reqFilters.maxQty ?? 9e8
-                  ),
-                  price: Between(
-                      reqFilters.minPrice ?? 0,
-                      reqFilters.maxPrice ?? 9e8
-                  ),
-                  product: {
-                      category: reqFilters.categoryId
-                          ? Equal(reqFilters.categoryId)
-                          : undefined,         
-				},
-              }
+            ? [
+                  {
+                      title: ILike(`%${text ?? ""}%`),
+                      quantity: Between(
+                          reqFilters.minQty ?? 0,
+                          reqFilters.maxQty ?? 9e8
+                      ),
+                      price: Between(
+                          reqFilters.minPrice ?? 0,
+                          reqFilters.maxPrice ?? 9e8
+                      ),
+                      product: {
+                          category: reqFilters.categoryId
+                              ? Equal(reqFilters.categoryId)
+                              : undefined,
+                      },
+                  },
+                  {
+                      quantity: Between(
+                          reqFilters.minQty ?? 0,
+                          reqFilters.maxQty ?? 9e8
+                      ),
+                      price: Between(
+                          reqFilters.minPrice ?? 0,
+                          reqFilters.maxPrice ?? 9e8
+                      ),
+                      product: {
+                          category: reqFilters.categoryId
+                              ? Equal(reqFilters.categoryId)
+                              : undefined,
+                          title: ILike(`%${text ?? ""}%`),
+                      },
+                  },
+              ]
             : [
                   { description: ILike(`%${text ?? ""}%`) },
                   { title: ILike(`%${text ?? ""}%`) },
@@ -221,6 +239,28 @@ export class ProductVersionService {
         await this.deleteProductVersion(product_v.id);
 
         return this.getProductVersionById(newProduct_v.id);
+    }
+
+    async decreaseQuantity(
+        versionId: string,
+        quantity: number
+    ): Promise<ProductVersionEntity> {
+        const product_v = await this.getProductVersionById(versionId);
+
+        try {
+            await this.product_vRepo.decrement(
+                { id: product_v?.id },
+                "quantity",
+                quantity
+            );
+        } catch (error) {
+            throw new HttpException(
+                "CANNOT_ADD_QUANTITY",
+                HttpStatus.NOT_MODIFIED
+            );
+        }
+
+        return this.getProductVersionById(product_v.id);
     }
 
     async setPhoto(

@@ -6,6 +6,7 @@ import { UserModule } from "../user/user.module";
 import { OrderController } from "./order.controller";
 import { OrderEntity, OrderProductEntity } from "./order.entity";
 import { OrderService } from "./order.service";
+import { ProductModule } from "../product/product.module";
 
 @Module({
     imports: [
@@ -13,6 +14,7 @@ import { OrderService } from "./order.service";
         CartModule,
         UserModule,
         AuthModule,
+        ProductModule,
     ],
     controllers: [OrderController],
     providers: [OrderService],

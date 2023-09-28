@@ -33,13 +33,14 @@ export class OrderService {
         user: UserEntity,
         type: OrderType,
         shop: ShopEntity,
+        address: string,
         ...items: CartProductEntity[]
     ): Promise<OrderEntity> {
         const order = new OrderEntity();
         order.shop = shop;
         order.paid = true;
         order.state = OrderState.PENDING;
-        order.address = "";
+        order.address = address;
         order.date = new Date();
         order.type = type ?? OrderType.DELIVERY;
         order.user = user;

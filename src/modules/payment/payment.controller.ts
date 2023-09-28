@@ -85,6 +85,9 @@ export class PaymentController {
                 quantity: item.quantity,
             })),
             mode: "payment",
+            metadata: {
+                address: payload.address ?? "My address",
+            },
         };
 
         // on créer une instance de la session de paiement
@@ -155,7 +158,11 @@ export class PaymentController {
             // à l'aide de l'objet eventEmitter, on emet un evenement de paiement
             // sur notre le serveur. cet evenement va tout simplement enregistrer
             // la commande dans la base de donnée
-            this.eventEmitter.emit("order/new", { user_id, items_id });
+            this.eventEmitter.emit("order/new", {
+                user_id,
+                items_id,
+                address: allData.metadata.address,
+            });
 
             // il faut retourner une reponse à stripe !
             return true;

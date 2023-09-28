@@ -21,6 +21,7 @@ import { UserService } from "../user/user.service";
 import { FindOrderQueryDto, SaveLocalOrderDto } from "./order.dto";
 import { OrderEntity, OrderState, OrderType } from "./order.entity";
 import { OrderService } from "./order.service";
+import { ProductVersionService } from "../product/productVersion.service";
 
 @Controller("order")
 export class OrderController {
@@ -31,7 +32,8 @@ export class OrderController {
     constructor(
         private orderService: OrderService,
         private cartService: CartService,
-        private userSerivce: UserService
+        private userSerivce: UserService,
+        private productVSerivce: ProductVersionService
     ) {}
 
     // recupere l'evenement emit sur le serveur, après chaque paiement
@@ -40,9 +42,11 @@ export class OrderController {
     async saveOrder({
         items_id,
         user_id,
+        address,
     }: {
         user_id: string;
         items_id: string[];
+        address: string;
     }) {
         // on recupere tous les produits payés
         const items = await Promise.all(
@@ -55,13 +59,25 @@ export class OrderController {
         const user = await this.userSerivce.getUserById(user_id);
 
         // on enregistre la commande dans la base de données
-        await this.orderService.addOrder(user, undefined, shop, ...items);
-
-        // on efface ensuite elements dans le pagnier
-        await Promise.all(
-            items.map((item) => this.cartService.deleteItem(item.id))
+        await this.orderService.addOrder(
+            user,
+            undefined,
+            shop,
+            address,
+            ...items
         );
 
+        // on efface ensuite elements dans le pagnier
+        // et on reduit la quantité
+        await Promise.all(
+            items.map(async (item) => {
+                await this.productVSerivce.decreaseQuantity(
+                    item?.product_v?.id,
+                    item?.quantity
+                );
+                return this.cartService.deleteItem(item.id);
+            })
+        );
         return true;
     }
 
@@ -87,11 +103,18 @@ export class OrderController {
             user,
             OrderType.INSITU,
             shop,
+            shop?.address ?? "",
             ...items
         );
 
         await Promise.all(
-            items.map((item) => this.cartService.deleteItem(item.id))
+            items.map(async (item) => {
+                await this.productVSerivce.decreaseQuantity(
+                    item?.product_v?.id,
+                    item?.quantity
+                );
+                return this.cartService.deleteItem(item.id);
+            })
         );
 
         order = await this.orderService.changeOrderStatus(

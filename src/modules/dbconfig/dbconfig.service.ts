@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from "@nestjs/typeorm";
+import * as path from "path";
 
 @Injectable()
 export class DbconfigService implements TypeOrmOptionsFactory {
@@ -15,9 +16,15 @@ export class DbconfigService implements TypeOrmOptionsFactory {
             username: this.configService.get<string>("DB_USERNAME"),
             password: this.configService.get<string>("DB_SECRET"),
             autoLoadEntities: true,
-            entities: [__dirname + "/**/*.entity.ts"],
-            synchronize: true,
+            entities: [this.getPath("dist/modules/**/*.entity.js")],
+            // entities: [__dirname + "/**/*.entity.ts"],
+            synchronize:
+                this.configService.get<string>("NODE_ENV") != "production",
         };
+    }
+
+    getPath(to: string): string {
+        return path.resolve(process.cwd() + "/" + to);
     }
 }
 
