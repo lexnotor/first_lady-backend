@@ -54,10 +54,10 @@ export class SeedData1695627807936 implements MigrationInterface {
         if (!user) {
             await queryRunner.manager.getRepository(UserEntity).insert({
                 email: "admin@admin.com",
-                username: "admin",
+                username: process.env.SUDO_USERNAME ?? "admin",
                 address: "PREMIERE DAME",
                 names: "Administateur",
-                secret: this.hashSecret("@dmin4321"),
+                secret: this.hashSecret(process.env.SUDO_SECRET ?? "@dmin4321"),
             });
         }
 
