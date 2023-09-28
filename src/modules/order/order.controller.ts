@@ -42,9 +42,11 @@ export class OrderController {
     async saveOrder({
         items_id,
         user_id,
+        address,
     }: {
         user_id: string;
         items_id: string[];
+        address: string;
     }) {
         // on recupere tous les produits payés
         const items = await Promise.all(
@@ -57,7 +59,13 @@ export class OrderController {
         const user = await this.userSerivce.getUserById(user_id);
 
         // on enregistre la commande dans la base de données
-        await this.orderService.addOrder(user, undefined, shop, ...items);
+        await this.orderService.addOrder(
+            user,
+            undefined,
+            shop,
+            address,
+            ...items
+        );
 
         // on efface ensuite elements dans le pagnier
         // et on reduit la quantité
@@ -70,7 +78,6 @@ export class OrderController {
                 return this.cartService.deleteItem(item.id);
             })
         );
-
         return true;
     }
 
@@ -96,6 +103,7 @@ export class OrderController {
             user,
             OrderType.INSITU,
             shop,
+            shop?.address ?? "",
             ...items
         );
 
