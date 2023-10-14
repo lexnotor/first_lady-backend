@@ -11,17 +11,22 @@ import { JwtService } from "@nestjs/jwt";
 import { Request } from "express";
 import { IncomingHttpHeaders } from "http";
 import { ROLE_KEY, UserIdentity } from "./auth.decorator";
+import { RoleType, TokenEntity } from "../user/user.entity";
+import { MoreThan, Repository } from "typeorm";
+import { InjectRepository } from "@nestjs/typeorm";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
     constructor(
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
-        private readonly reflector: Reflector
+        private readonly reflector: Reflector,
+        @InjectRepository(TokenEntity)
+        private readonly tokenRepo: Repository<TokenEntity>
     ) {}
-    canActivate(context: ExecutionContext): boolean | Promise<boolean> {
+    async canActivate(context: ExecutionContext): Promise<boolean> {
         const requiredRoles =
-            this.reflector.getAllAndOverride<string[]>(ROLE_KEY, [
+            this.reflector.getAllAndOverride<RoleType[]>(ROLE_KEY, [
                 context.getHandler(),
                 context.getClass(),
             ]) || [];
@@ -32,6 +37,20 @@ export class AuthGuard implements CanActivate {
 
         const token = this.extractJwt(request.headers);
 
+        // Verifions si le jeton est toujours actif
+        await this.tokenRepo
+            .findOneByOrFail({
+                content: token,
+                status: "ACTIVE",
+                expire_at: MoreThan(new Date()),
+            })
+            .catch(() => {
+                throw new HttpException(
+                    "UNKNOWN_TOKEN",
+                    HttpStatus.UNAUTHORIZED
+                );
+            });
+
         try {
             if (!token) throw new Error("EXPECTED_TOKEN");
             const user: UserIdentity = this.jwtService.verify(token, {
@@ -39,9 +58,8 @@ export class AuthGuard implements CanActivate {
             });
 
             if (
-                !requiredRoles.every(
-                    (role) => user.roles && user.roles.includes(role)
-                )
+                !requiredRoles.every((role) => user.roles.includes(role)) &&
+                !user.roles.includes(RoleType.OWNER)
             ) {
                 throw new Error("PERMISSION_DENIED");
             }

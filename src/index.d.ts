@@ -1,3 +1,5 @@
+import { RoleType } from "./modules/user/user.entity";
+
 export type ApiResponse<T = object, D = any> = {
     message: string;
     data?: T;
@@ -37,7 +39,7 @@ export interface UserShopInfo extends DefaultInfo {
 }
 
 export interface RoleInfo extends DefaultInfo {
-    title?: string;
+    title?: RoleType;
     description?: string;
     user_shops?: UserShopRoleInfo[] | string[];
 }

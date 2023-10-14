@@ -7,6 +7,7 @@ import { CreateShopDto } from "./shop.dto";
 import { ShopEntity } from "./shop.entity";
 import { ShopService } from "./shop.service";
 import { ApiResponse } from "@/index";
+import { RoleType } from "../user/user.entity";
 
 @Controller("shop")
 export class ShopController {
@@ -30,7 +31,9 @@ export class ShopController {
         const userShop = await this.userService.addUserToShop(shop, user.id);
 
         // on assigne l'utilisateur comme un proprietaire
-        const [role] = await this.roleService.findRoles({ title: "OWNER" });
+        const [role] = await this.roleService.findRoles({
+            title: RoleType.OWNER,
+        });
         await this.roleService.assignRoleTo(userShop, role);
 
         return shop;

@@ -112,7 +112,7 @@ class RoleService {
 
         const filter: FindManyOptions<RoleEntity> = {};
         filter.where = [
-            { title: Like(`%${payload.title ?? ""}%`) },
+            { title: payload.title ?? undefined },
             { description: Like(`%${payload.description ?? ""}%`) },
         ];
         filter.select = {

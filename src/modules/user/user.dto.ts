@@ -1,11 +1,13 @@
 import {
     IsEmail,
     IsEmpty,
+    IsEnum,
     IsNotEmpty,
     IsOptional,
     IsString,
     MinLength,
 } from "class-validator";
+import { RoleType } from "./user.entity";
 
 class CreateUserDto {
     // required
@@ -60,10 +62,9 @@ class UpdateUserDto {
 }
 
 class CreateRoleDto {
-    @IsString()
     @IsNotEmpty()
-    @MinLength(3)
-    title: string;
+    @IsEnum(RoleType)
+    title: RoleType;
 
     @IsOptional()
     @IsString()

@@ -2,6 +2,7 @@ import { CategoryEntity } from "@/modules/product/product.entity";
 import { ShopEntity } from "@/modules/shop/shop.entity";
 import {
     RoleEntity,
+    RoleType,
     UserEntity,
     UserShopEntity,
     UserShopRoleEntity,
@@ -34,7 +35,7 @@ export class SeedData1695627807936 implements MigrationInterface {
                 .findOneBy({ title: "PREMIERE DAME VLISCO" }),
             role = await queryRunner.manager
                 .getRepository<RoleEntity>(RoleEntity)
-                .findOneBy({ title: "OWNER" }),
+                .findOneBy({ title: RoleType.OWNER }),
             user_shop = await queryRunner.manager
                 .getRepository(UserShopEntity)
                 .findOneBy({ shop: Equal(shop?.id), user: Equal(user?.id) });
@@ -80,27 +81,27 @@ export class SeedData1695627807936 implements MigrationInterface {
     async createOwnerRole(queryRunner: QueryRunner): Promise<RoleEntity> {
         const result = await queryRunner.manager
             .getRepository<RoleEntity>(RoleEntity)
-            .findOneBy({ title: "OWNER" });
+            .findOneBy({ title: RoleType.OWNER });
         if (!result)
             await queryRunner.manager
                 .getRepository<RoleEntity>(RoleEntity)
                 .insert({
-                    title: "OWNER",
+                    title: RoleType.OWNER,
                     description: "THE SHOP CREATOR IS THE OWNER",
                 });
         return await queryRunner.manager
             .getRepository<RoleEntity>(RoleEntity)
-            .findOneBy({ title: "OWNER" });
+            .findOneBy({ title: RoleType.OWNER });
     }
     async deleteOwnerRole(queryRunner: QueryRunner): Promise<string> {
         const role = await queryRunner.manager
             .getRepository<RoleEntity>(RoleEntity)
-            .findOneBy({ title: "OWNER" });
+            .findOneBy({ title: RoleType.OWNER });
         if (role)
             await queryRunner.manager
                 .getRepository<RoleEntity>(RoleEntity)
                 .insert({
-                    title: "OWNER",
+                    title: RoleType.OWNER,
                     description: "THE SHOP CREATOR IS THE OWNER",
                 });
         return role?.id;
