@@ -25,19 +25,26 @@ export class AuthGuard implements CanActivate {
         private readonly tokenRepo: Repository<TokenEntity>
     ) {}
     async canActivate(context: ExecutionContext): Promise<boolean> {
+        // Recupere les roles necessair
         const requiredRoles =
             this.reflector.getAllAndOverride<RoleType[]>(ROLE_KEY, [
                 context.getHandler(),
                 context.getClass(),
             ]) || [];
 
+        // Recupere le contenu de la requette
         const request = context
             .switchToHttp()
             .getRequest<Request & { user: UserIdentity }>();
 
+        // Extrait le contenu du token
         const token = this.extractJwt(request.headers);
 
-        // Verifions si le jeton est toujours actif
+        // Verifie s'il y a un token
+        if (!token)
+            throw new HttpException("SIGNIN_FIRST", HttpStatus.UNAUTHORIZED);
+
+        // Verifions si le jeton est toujours actif, existe dans la BD
         await this.tokenRepo
             .findOneByOrFail({
                 content: token,
@@ -51,25 +58,31 @@ export class AuthGuard implements CanActivate {
                 );
             });
 
-        try {
-            if (!token) throw new Error("EXPECTED_TOKEN");
-            const user: UserIdentity = this.jwtService.verify(token, {
+        // Decode le token
+        const user: UserIdentity = await this.jwtService
+            .verifyAsync(token, {
                 secret: this.configService.get<string>("JWT_SECRET"),
+            })
+            .catch(() => {
+                throw new HttpException(
+                    "INVALID_TOKEN",
+                    HttpStatus.UNAUTHORIZED
+                );
             });
 
-            if (
-                !requiredRoles.every((role) => user.roles.includes(role)) &&
-                !user.roles.includes(RoleType.OWNER)
-            ) {
-                throw new Error("PERMISSION_DENIED");
-            }
-
-            request.user = user;
-
-            return true;
-        } catch (error) {
-            throw new HttpException("INVALID_TOKEN", HttpStatus.UNAUTHORIZED);
+        if (
+            !requiredRoles.every((role) => user.roles.includes(role)) &&
+            !user.roles.includes(RoleType.OWNER)
+        ) {
+            throw new HttpException(
+                "PERMISSION_DENIED",
+                HttpStatus.UNAUTHORIZED
+            );
         }
+
+        request.user = user;
+
+        return true;
     }
 
     extractJwt({ authorization }: IncomingHttpHeaders): string {

@@ -1,23 +1,39 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Buffer } from "buffer";
 import { Equal, FindOneOptions, Repository } from "typeorm";
 import { ShopEntity } from "../shop/shop.entity";
-import { CreateUserDto, UpdateUserDto } from "./user.dto";
-import { UserEntity, UserShopEntity } from "./user.entity";
-import { EventEmitter2 } from "@nestjs/event-emitter";
+import { CreateUserDto, FindUserDto, UpdateUserDto } from "./user.dto";
+import {
+    RoleEntity,
+    UserEntity,
+    UserShopEntity,
+    UserShopRoleEntity,
+} from "./user.entity";
+import { ConfigService } from "@nestjs/config";
+import { genSaltSync, hash } from "bcrypt";
 
 @Injectable()
 export class UserService {
+    salt: string;
     constructor(
         @InjectRepository(UserEntity)
         private readonly userRepo: Repository<UserEntity>,
         @InjectRepository(UserShopEntity)
         private readonly userShopRepo: Repository<UserShopEntity>,
-        private readonly eventEmitter: EventEmitter2
-    ) {}
+        @InjectRepository(UserShopRoleEntity)
+        private readonly userShopRoleRepo: Repository<UserShopRoleEntity>,
+        private readonly eventEmitter: EventEmitter2,
+        private readonly configService: ConfigService
+    ) {
+        const round =
+            +this.configService.get<number>("SECRET_HASH_ROUND") || 10;
+        this.salt = genSaltSync(round);
+    }
 
-    hashPwd(secret: string): string {
-        return secret;
+    async hashSecret(secret: string) {
+        return await hash(secret, this.salt);
     }
 
     async createUser(
@@ -26,7 +42,7 @@ export class UserService {
         const user = new UserEntity();
         // required
         user.username = payload.username;
-        user.secret = this.hashPwd(payload.secret);
+        user.secret = await this.hashSecret(payload.secret);
         user.names = payload.names;
 
         // optional
@@ -51,15 +67,12 @@ export class UserService {
 
     async addUserToShop(
         shop: ShopEntity,
-        user: string | UserEntity
+        user: UserEntity
     ): Promise<UserShopEntity> {
         const userShop = new UserShopEntity();
 
         userShop.shop = shop;
-
-        if (typeof user == "string")
-            userShop.user = await this.getUserById(user);
-        else userShop.user = user;
+        userShop.user = user;
 
         try {
             await this.userShopRepo.save(userShop);
@@ -81,6 +94,8 @@ export class UserService {
         user.address = payload.address ?? user.address;
         user.email = payload.email ?? user.email;
         user.names = payload.names ?? user.names;
+        payload?.secret &&
+            (user.secret = await this.hashSecret(payload?.secret));
 
         try {
             await this.userRepo.save(user);
@@ -98,19 +113,8 @@ export class UserService {
         let user: UserEntity;
         const filter: FindOneOptions<UserEntity> = {};
         filter.where = { id: Equal(id) };
-        filter.select = {
-            id: true,
-            username: true,
-            names: true,
-            address: true,
-            created_at: true,
-            bank: true,
-            birth: true,
-            email: true,
-            shops: true,
-        };
 
-        filter.relations = { shops: true };
+        filter.relations = { shops: { roles: { role: true }, shop: true } };
 
         try {
             user = await this.userRepo.findOneOrFail(filter);
@@ -121,46 +125,171 @@ export class UserService {
         return user;
     }
 
-    async getUserRoles(userId: string): Promise<UserEntity> {
-        let user: UserEntity;
-
-        const filter: FindOneOptions<UserEntity> = {};
-        filter.where = { id: Equal(userId) };
-        filter.relations = {
-            shops: { roles: true, shop: true },
-        };
-        filter.select = { id: true };
-
-        try {
-            user = await this.userRepo.findOneOrFail(filter);
-        } catch (error) {
-            throw new HttpException("USER_NOT_EXIST", HttpStatus.NOT_FOUND);
-        }
-
-        return user;
+    async assignUserRoles(
+        user_shop: UserShopEntity,
+        roles: RoleEntity[]
+    ): Promise<UserShopRoleEntity[]> {
+        const user_shop_roles = roles.map((item) => {
+            const role = new UserShopRoleEntity();
+            role.role = item;
+            role.user_shop = user_shop;
+            return role;
+        });
+        return await this.userShopRoleRepo.save(user_shop_roles);
     }
 
-    async getUserShop(userId: string): Promise<UserShopEntity[]> {
-        let userShop: UserShopEntity[];
-        const filter: FindOneOptions<UserEntity> = {};
-        filter.select = { id: true, shops: true };
+    async dismissUserRoles(userShopRoles: string[]): Promise<string[]> {
+        const toRemove = await Promise.all(
+            userShopRoles.map((item) => this.getShopRoleById(item))
+        );
 
+        await this.userShopRoleRepo.softRemove(toRemove).catch(() => {
+            throw new HttpException(
+                "CANNOT_DISMISS_ROLE",
+                HttpStatus.NOT_MODIFIED
+            );
+        });
+        return userShopRoles;
+    }
+
+    async dismissAllRoleFrom(userId: string): Promise<UserShopRoleEntity[]> {
+        const user = await this.getUserRoles(userId);
+
+        return await this.userShopRoleRepo.softRemove(user);
+    }
+
+    async getUserRoles(userId: string): Promise<UserShopRoleEntity[]> {
+        let roles: UserShopRoleEntity[];
+
+        const filter: FindOneOptions<UserShopRoleEntity> = {};
+        filter.where = { id: Equal(userId) };
         filter.relations = {
-            shops: { shop: true, roles: { role: true } },
-        };
-
-        filter.where = {
-            id: Equal(userId),
+            role: true,
+            user_shop: true,
         };
 
         try {
-            const user = await this.userRepo.findOneOrFail(filter);
-            userShop = user.shops;
+            roles = await this.userShopRoleRepo.find(filter);
         } catch (error) {
-            throw new HttpException("USER_NOT_FOUND", HttpStatus.CONFLICT);
+            throw new HttpException("NOT_ROLE_FOUND", HttpStatus.NOT_FOUND);
+        }
+
+        return roles;
+    }
+
+    async getUserShop(userId: string): Promise<UserShopEntity> {
+        let userShop: UserShopEntity;
+        const filter: FindOneOptions<UserShopEntity> = {};
+        filter.where = {
+            user: Equal(userId),
+        };
+        filter.relations = {
+            roles: { role: true },
+            shop: true,
+            user: true,
+        };
+
+        try {
+            userShop = await this.userShopRepo.findOneOrFail(filter);
+        } catch (error) {
+            throw new HttpException("USER_SHOP_NOT_FOUND", HttpStatus.CONFLICT);
         }
 
         return userShop;
+    }
+
+    async findUser(payload: FindUserDto = {}): Promise<UserEntity[]> {
+        let users: UserEntity[];
+        const queryBuilder = this.userRepo
+            .createQueryBuilder("user")
+            // relation user -> user_shop
+            .leftJoinAndSelect(
+                "user.shops",
+                "userShop",
+                "user.id = userShop.user_id"
+            )
+            // relation user_shop -> user_shop_role
+            .leftJoinAndSelect(
+                "userShop.roles",
+                "userShopRole",
+                "userShop.id = userShopRole.user_shop_id"
+            )
+            // relation user_shop -> role
+            .leftJoinAndSelect(
+                "userShopRole.role",
+                "role",
+                "role.id = userShopRole.role_id"
+            )
+            // realtion user_shop -> shop
+            .leftJoinAndSelect(
+                "userShop.shop",
+                "shop",
+                "shop.id = userShop.shop_id"
+            )
+            .orderBy("user.updated_at", "ASC");
+
+        if (!!payload.email)
+            queryBuilder.where("user.email LIKE :email", {
+                email: `${payload.email}`,
+            });
+        if (!!payload.names)
+            queryBuilder.andWhere("user.names LIKE :names", {
+                names: `%${payload.names}%`,
+            });
+        if (!!payload.username)
+            queryBuilder.andWhere("user.username LIKE :username", {
+                username: `%${payload.username}%`,
+            });
+        if (!!payload.type)
+            queryBuilder.andWhere(
+                `userShop.id ${
+                    payload.type == "CLIENT" ? "IS NULL" : "IS NOT NULL"
+                }`
+            );
+
+        if (!!payload.secret)
+            queryBuilder.andWhere("user.secret = :secret", {
+                secret: await this.hashSecret(payload.secret),
+            });
+
+        if (!!payload.user_id)
+            queryBuilder.andWhere("user.id = :userId", {
+                userId: payload.user_id,
+            });
+
+        if (!!payload.shop_id)
+            queryBuilder.andWhere("shop.id = :shop_id", {
+                shop_id: payload.shop_id,
+            });
+        if (payload.page) {
+            queryBuilder.skip((+payload.page - 1) * 50);
+            queryBuilder.take(50);
+        }
+
+        try {
+            users = await queryBuilder.getMany();
+        } catch (error) {
+            throw new HttpException("USER_NOT_FOUND", HttpStatus.NOT_FOUND);
+        }
+
+        return users;
+    }
+
+    async getShopRoleById(shopRoleId: string) {
+        const filter: FindOneOptions<UserShopRoleEntity> = {};
+        filter.where = { id: shopRoleId };
+
+        let shop_role: UserShopRoleEntity;
+
+        try {
+            shop_role = await this.userShopRoleRepo.findOneOrFail(filter);
+        } catch (error) {
+            throw new HttpException(
+                "USER_ROLE_NOT_FOUND",
+                HttpStatus.NOT_FOUND
+            );
+        }
+        return shop_role;
     }
 
     async deleteUser(userId: string): Promise<string> {
@@ -182,5 +311,16 @@ export class UserService {
             total_user: await this.userRepo.count(),
         };
         return stats;
+    }
+
+    extractBasicCredential(authorization: string) {
+        const basic = authorization.replace(/^Basic /, "");
+        const [credential, psw] = Buffer.from(basic, "base64")
+            .toString("utf-8")
+            .split(":", 2);
+        if (!credential || !psw)
+            throw new HttpException("NO_CREDENTIAL", HttpStatus.BAD_REQUEST);
+
+        return [credential, psw];
     }
 }

@@ -22,13 +22,14 @@ export class ShopController {
     @Post("new")
     async createShop(
         @Body() payload: CreateShopDto,
-        @User() user: UserIdentity
+        @User() userAuth: UserIdentity
     ): Promise<ShopEntity> {
         // on cree la boutique
         const shop = await this.shopService.createShop(payload);
 
         // on ajouter l'utilisateur à la boutique
-        const userShop = await this.userService.addUserToShop(shop, user.id);
+        const user = await this.userService.getUserById(userAuth.id);
+        const userShop = await this.userService.addUserToShop(shop, user);
 
         // on assigne l'utilisateur comme un proprietaire
         const [role] = await this.roleService.findRoles({

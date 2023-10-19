@@ -190,6 +190,7 @@ export class OrderController {
     // cet endpoint permet d'annuler une commande
     @Put("cancel/:id")
     @UseGuards(AuthGuard)
+    @HasRole(RoleType.UPDATE_ORDER)
     async cancelOrder(
         @Param() orderId: string
     ): Promise<ApiResponse<OrderEntity>> {
@@ -204,6 +205,7 @@ export class OrderController {
     // cet endpoint permet de marquer terminer, une commande
     @Put("done/:id")
     @UseGuards(AuthGuard)
+    @HasRole(RoleType.UPDATE_ORDER)
     async finishOrder(
         @Param() orderId: string
     ): Promise<ApiResponse<OrderEntity>> {

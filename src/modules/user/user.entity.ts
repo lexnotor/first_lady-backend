@@ -32,7 +32,7 @@ class UserEntity extends DefaultEntity {
     @Column({ nullable: true })
     email: string;
 
-    @Column()
+    @Column({ select: false })
     secret: string;
 
     @Column({ nullable: true })
