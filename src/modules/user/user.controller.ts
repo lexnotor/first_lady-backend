@@ -6,6 +6,7 @@ import {
     Get,
     HttpException,
     HttpStatus,
+    Param,
     Post,
     Put,
     Query,
@@ -193,6 +194,18 @@ export class UserController {
         return {
             message: "USER_STATS",
             data: await this.userService.loadUserStat(),
+        };
+    }
+
+    @Delete("delete/:userId")
+    @UseGuards(AuthGuard)
+    @HasRole(RoleType.UPDATE_USER)
+    async deleteUser(
+        @Param("userId") userId: string
+    ): Promise<ApiResponse<string>> {
+        return {
+            message: "DELETE_USER",
+            data: await this.userService.deleteUser(userId),
         };
     }
 }
