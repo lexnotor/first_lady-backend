@@ -178,7 +178,8 @@ export class ProductController {
               filter.maxQty ||
               filter.minPrice ||
               filter.minQty ||
-              filter.categoryId
+              filter.categoryId ||
+              filter.productId
             ? await this.productVersionService.findProductVersion(
                   text,
                   page,

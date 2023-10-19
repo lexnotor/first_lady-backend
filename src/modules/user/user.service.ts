@@ -261,7 +261,7 @@ export class UserService {
             queryBuilder.andWhere("shop.id = :shop_id", {
                 shop_id: payload.shop_id,
             });
-        if (payload.page) {
+        if (payload.page && +payload.page >= 1) {
             queryBuilder.skip((+payload.page - 1) * 50);
             queryBuilder.take(50);
         }
