@@ -214,6 +214,11 @@ class FindProductVersionDto {
     @IsOptional()
     @IsString()
     @IsUUID()
+    productId: string;
+
+    @IsOptional()
+    @IsString()
+    @IsUUID()
     id?: string;
 
     @IsOptional()

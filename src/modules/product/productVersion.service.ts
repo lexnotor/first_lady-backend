@@ -142,6 +142,9 @@ export class ProductVersionService {
                           category: reqFilters.categoryId
                               ? Equal(reqFilters.categoryId)
                               : undefined,
+                          id: reqFilters.productId
+                              ? Equal(reqFilters.productId)
+                              : undefined,
                       },
                   },
                   {
@@ -158,6 +161,9 @@ export class ProductVersionService {
                               ? Equal(reqFilters.categoryId)
                               : undefined,
                           title: ILike(`%${text ?? ""}%`),
+                          id: reqFilters.productId
+                              ? Equal(reqFilters.productId)
+                              : undefined,
                       },
                   },
               ]
