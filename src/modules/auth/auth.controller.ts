@@ -10,10 +10,10 @@ import {
     UseGuards,
 } from "@nestjs/common";
 import { isEmpty, isString, isUUID, matches } from "class-validator";
-import { AuthService } from "./auth.service";
-import { CreateUserDto } from "../user/user.dto";
-import { AuthGuard } from "./auth.guard";
+import { SignupUserDto } from "../user/user.dto";
 import { User, UserIdentity } from "./auth.decorator";
+import { AuthGuard } from "./auth.guard";
+import { AuthService } from "./auth.service";
 
 @Controller()
 export class AuthController {
@@ -50,7 +50,7 @@ export class AuthController {
 
     @Post("signup")
     async signup(
-        @Body() payload: CreateUserDto,
+        @Body() payload: SignupUserDto,
         @Headers("authorization") credential: string
     ): Promise<ApiResponse<UserInfo>> {
         // check the password

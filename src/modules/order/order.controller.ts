@@ -22,6 +22,7 @@ import { FindOrderQueryDto, SaveLocalOrderDto } from "./order.dto";
 import { OrderEntity, OrderState, OrderType } from "./order.entity";
 import { OrderService } from "./order.service";
 import { ProductVersionService } from "../product/productVersion.service";
+import { RoleType } from "../user/user.entity";
 
 @Controller("order")
 export class OrderController {
@@ -85,7 +86,7 @@ export class OrderController {
     // similaire à saveOrder
     @Post("local")
     @UseGuards(AuthGuard)
-    @HasRole("OWNER")
+    @HasRole(RoleType.SELLER)
     async saveLocalOrder(
         @Body() payload: SaveLocalOrderDto,
         @User() { id: UserId }: UserIdentity
@@ -165,7 +166,7 @@ export class OrderController {
     // cet endpoint permet de chercher des commandes dans la base de données
     // les filtres de recherche sont dans FindOrderQueryDto
     @Get()
-    @HasRole("OWNER")
+    @HasRole(RoleType.STAFF)
     @UseGuards(AuthGuard)
     async findOrders(
         @Query() query: FindOrderQueryDto
@@ -189,6 +190,7 @@ export class OrderController {
     // cet endpoint permet d'annuler une commande
     @Put("cancel/:id")
     @UseGuards(AuthGuard)
+    @HasRole(RoleType.UPDATE_ORDER)
     async cancelOrder(
         @Param() orderId: string
     ): Promise<ApiResponse<OrderEntity>> {
@@ -203,6 +205,7 @@ export class OrderController {
     // cet endpoint permet de marquer terminer, une commande
     @Put("done/:id")
     @UseGuards(AuthGuard)
+    @HasRole(RoleType.UPDATE_ORDER)
     async finishOrder(
         @Param() orderId: string
     ): Promise<ApiResponse<OrderEntity>> {

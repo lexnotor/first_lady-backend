@@ -1,16 +1,17 @@
-import { Module } from "@nestjs/common";
-import { JwtModule } from "@nestjs/jwt";
+import { Module, forwardRef } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { AuthModule } from "../auth/auth.module";
+import { ShopModule } from "../shop/shop.module";
 import { RoleService } from "./role.service";
 import { UserController } from "./user.controller";
 import {
     RoleEntity,
+    TokenEntity,
     UserEntity,
     UserShopEntity,
     UserShopRoleEntity,
 } from "./user.entity";
 import { UserService } from "./user.service";
-import { ConfigModule } from "@nestjs/config";
 
 @Module({
     imports: [
@@ -19,9 +20,10 @@ import { ConfigModule } from "@nestjs/config";
             UserShopEntity,
             RoleEntity,
             UserShopRoleEntity,
+            TokenEntity,
         ]),
-        JwtModule,
-        ConfigModule,
+        forwardRef(() => AuthModule),
+        ShopModule,
     ],
     controllers: [UserController],
     providers: [UserService, RoleService],

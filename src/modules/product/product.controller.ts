@@ -39,6 +39,7 @@ import { ProductService } from "./product.service";
 import { ProductVersionService } from "./productVersion.service";
 import { CategoryService } from "./category.service";
 import { isUUID } from "class-validator";
+import { RoleType } from "../user/user.entity";
 
 @Controller("product")
 export class ProductController {
@@ -56,7 +57,7 @@ export class ProductController {
     // cet endpoint permet de créer un produit dans la base de données
     // il faudra ensuite créer une version du produit ailleur
     @Post("new")
-    @HasRole("OWNER")
+    @HasRole(RoleType.UPDATE_PRODUCT)
     @UseGuards(AuthGuard)
     async createProduct(
         @Body() payload: CreateProductDto,
@@ -107,7 +108,7 @@ export class ProductController {
     // cet endpoint permet de mettre à jour un produit donné
     @Put("update/:id")
     @UseGuards(AuthGuard)
-    @HasRole("OWNER")
+    @HasRole(RoleType.UPDATE_PRODUCT)
     async updateProduct(
         @Body() payload: UpdateProductDto,
         @Param("id") productId: string
@@ -139,7 +140,7 @@ export class ProductController {
     // -----------------------------------------
     // cet endpoint permet de créer une nouvelle variante du produit
     @Post("version/new")
-    @HasRole("OWNER")
+    @HasRole(RoleType.UPDATE_PRODUCT)
     async createVersion(
         @Body() payload: CreateVersionDto
     ): Promise<ApiResponse<ProductVersionEntity>> {
@@ -203,7 +204,7 @@ export class ProductController {
     // il sert donc aussi lors de l'approvisionnement
     @Put("version/update/:id")
     @UseGuards(AuthGuard)
-    @HasRole("OWNER")
+    @HasRole(RoleType.UPDATE_PRODUCT)
     async updateProductVersion(
         @Param("id") versionId: string,
         @Body() payload: UpdateVerisonDto
@@ -232,7 +233,7 @@ export class ProductController {
     // cet endpoint permet de supprimer une variant du produit
     @Delete("version/:id")
     @UseGuards(AuthGuard)
-    @HasRole("OWNER")
+    @HasRole(RoleType.UPDATE_PRODUCT)
     async deleteProductVersion(
         @Param("id") versionId: string
     ): Promise<ApiResponse<string>> {
@@ -247,7 +248,7 @@ export class ProductController {
     // cet endpoint permet d'ajouter la photo sur une variant
     @Put("version/photo")
     @UseGuards(AuthGuard)
-    @HasRole("OWNER")
+    @HasRole(RoleType.UPDATE_PRODUCT)
     @UseInterceptors(FileInterceptor("file"))
     async setPhoto(
         @Query() query: AddPhotoDto,
@@ -282,7 +283,7 @@ export class ProductController {
     // cet enpoint permet de créer une category de produit
     @Post("category/new")
     @UseGuards(AuthGuard)
-    @HasRole("OWNER")
+    @HasRole(RoleType.UPDATE_PRODUCT)
     async createCategory(
         @Body() payload: CreateCategoryDto,
         @User() user: UserIdentity

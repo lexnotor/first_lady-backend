@@ -9,6 +9,15 @@ import {
 } from "typeorm";
 import { ShopEntity } from "../shop/shop.entity";
 
+export enum RoleType {
+    OWNER = "OWNER",
+    UPDATE_USER = "UPDATE_USER",
+    UPDATE_PRODUCT = "UPDATE_PRODUCT",
+    UPDATE_ORDER = "UPDATE_ORDER",
+    SELLER = "SELLER",
+    STAFF = "STAFF",
+}
+
 /**
  * Define a user in database
  */
@@ -23,7 +32,7 @@ class UserEntity extends DefaultEntity {
     @Column({ nullable: true })
     email: string;
 
-    @Column()
+    @Column({ select: false })
     secret: string;
 
     @Column({ nullable: true })
@@ -37,6 +46,9 @@ class UserEntity extends DefaultEntity {
 
     @OneToMany(() => UserShopEntity, (shop) => shop.user)
     shops?: Relation<UserShopEntity[]>;
+
+    @OneToMany(() => TokenEntity, (token) => token.user, { cascade: true })
+    tokens?: Relation<TokenEntity[]>;
 }
 
 /**
@@ -77,8 +89,8 @@ class UserShopRoleEntity extends DefaultEntity {
  */
 @Entity("roles")
 class RoleEntity extends DefaultEntity {
-    @Column({ unique: true })
-    title: string;
+    @Column({ unique: true, enum: RoleType })
+    title: RoleType;
 
     @Column()
     description: string;
@@ -89,4 +101,28 @@ class RoleEntity extends DefaultEntity {
     user_shops?: Relation<UserShopRoleEntity[]>;
 }
 
-export { RoleEntity, UserEntity, UserShopEntity, UserShopRoleEntity };
+@Entity("tokens")
+class TokenEntity extends DefaultEntity {
+    @ManyToOne(() => UserEntity, (user) => user.tokens)
+    user: Relation<UserEntity>;
+
+    @Column()
+    content: string;
+
+    @Column("jsonb", { default: {} })
+    data: object;
+
+    @Column("timestamp", { nullable: true, default: null })
+    expire_at: Date;
+
+    @Column({ default: "ACTIVE", nullable: false })
+    status: "ACTIVE" | "INACTIVE";
+}
+
+export {
+    RoleEntity,
+    UserEntity,
+    UserShopEntity,
+    UserShopRoleEntity,
+    TokenEntity,
+};

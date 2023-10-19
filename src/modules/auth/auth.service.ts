@@ -7,7 +7,7 @@ import { Buffer } from "buffer";
 import { randomUUID } from "crypto";
 import { Repository } from "typeorm";
 import { CreateUserDto } from "../user/user.dto";
-import { UserEntity } from "../user/user.entity";
+import { TokenEntity, UserEntity } from "../user/user.entity";
 import { UserService } from "../user/user.service";
 import { UserIdentity } from "./auth.decorator";
 
@@ -17,6 +17,8 @@ export class AuthService {
     constructor(
         @InjectRepository(UserEntity)
         private readonly userRepo: Repository<UserEntity>,
+        @InjectRepository(TokenEntity)
+        private readonly tokenRepo: Repository<TokenEntity>,
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly userService: UserService
@@ -72,6 +74,14 @@ export class AuthService {
             const token = this.jwtService.sign(content, {
                 expiresIn: "7d",
                 secret: this.configService.get<string>("JWT_SECRET"),
+            });
+
+            await this.tokenRepo.save({
+                content: token,
+                data: content,
+                expire_at: new Date(Date.now() + 7 * 24 * 3600 * 1_000),
+                status: "ACTIVE",
+                user: user,
             });
 
             return token;

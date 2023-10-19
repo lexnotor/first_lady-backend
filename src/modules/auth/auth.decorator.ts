@@ -4,6 +4,7 @@ import {
     createParamDecorator,
 } from "@nestjs/common";
 import { Request } from "express";
+import { RoleType } from "../user/user.entity";
 
 type UserIdentity = {
     id: string;
@@ -11,7 +12,7 @@ type UserIdentity = {
     generated: string;
     n_v: string;
     shop?: string;
-    roles?: string[];
+    roles?: RoleType[];
 };
 
 const User = createParamDecorator<void, ExecutionContext, UserIdentity>(
@@ -19,11 +20,11 @@ const User = createParamDecorator<void, ExecutionContext, UserIdentity>(
         const request = context
             .switchToHttp()
             .getRequest<Request & { user: UserIdentity }>();
-        return request.user;
+        return { roles: [], ...request.user };
     }
 );
 
 const ROLE_KEY = "ROLES_ACCESS";
-const HasRole = (...roles: string[]) => SetMetadata(ROLE_KEY, roles);
+const HasRole = (...roles: RoleType[]) => SetMetadata(ROLE_KEY, roles);
 
 export { User, UserIdentity, HasRole, ROLE_KEY };

@@ -7,6 +7,7 @@ import { CreateShopDto } from "./shop.dto";
 import { ShopEntity } from "./shop.entity";
 import { ShopService } from "./shop.service";
 import { ApiResponse } from "@/index";
+import { RoleType } from "../user/user.entity";
 
 @Controller("shop")
 export class ShopController {
@@ -21,16 +22,19 @@ export class ShopController {
     @Post("new")
     async createShop(
         @Body() payload: CreateShopDto,
-        @User() user: UserIdentity
+        @User() userAuth: UserIdentity
     ): Promise<ShopEntity> {
         // on cree la boutique
         const shop = await this.shopService.createShop(payload);
 
         // on ajouter l'utilisateur à la boutique
-        const userShop = await this.userService.addUserToShop(shop, user.id);
+        const user = await this.userService.getUserById(userAuth.id);
+        const userShop = await this.userService.addUserToShop(shop, user);
 
         // on assigne l'utilisateur comme un proprietaire
-        const [role] = await this.roleService.findRoles({ title: "OWNER" });
+        const [role] = await this.roleService.findRoles({
+            title: RoleType.OWNER,
+        });
         await this.roleService.assignRoleTo(userShop, role);
 
         return shop;

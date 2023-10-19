@@ -12,7 +12,7 @@ export class DefaultEntity {
     @CreateDateColumn()
     created_at: Date;
 
-    @UpdateDateColumn({ select: false })
+    @UpdateDateColumn()
     updated_at: Date;
 
     @DeleteDateColumn({ select: false })

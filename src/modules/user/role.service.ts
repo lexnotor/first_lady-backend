@@ -107,22 +107,14 @@ class RoleService {
         return role;
     }
 
-    async findRoles(payload: RoleInfo = {}, page = 1): Promise<RoleEntity[]> {
+    async findRoles(payload: RoleInfo = {}): Promise<RoleEntity[]> {
         let roles: RoleEntity[];
 
         const filter: FindManyOptions<RoleEntity> = {};
         filter.where = [
-            { title: Like(`%${payload.title ?? ""}%`) },
+            { title: payload.title ?? undefined },
             { description: Like(`%${payload.description ?? ""}%`) },
         ];
-        filter.select = {
-            id: true,
-            created_at: true,
-            description: true,
-            title: true,
-        };
-        filter.skip = (page - 1) * this.pageSize;
-        filter.take = this.pageSize;
 
         try {
             roles = await this.roleRepo.find(filter);
