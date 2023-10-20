@@ -194,7 +194,7 @@ export class OrderController {
     @UseGuards(AuthGuard)
     @HasRole(RoleType.UPDATE_ORDER)
     async cancelOrder(
-        @Param() orderId: string
+        @Param("id") orderId: string
     ): Promise<ApiResponse<OrderEntity>> {
         return {
             message: "ORDERS_CANCEL",
@@ -209,7 +209,7 @@ export class OrderController {
     @UseGuards(AuthGuard)
     @HasRole(RoleType.UPDATE_ORDER)
     async finishOrder(
-        @Param() orderId: string
+        @Param("id") orderId: string
     ): Promise<ApiResponse<OrderEntity>> {
         return {
             message: "ORDERS_DONE",
