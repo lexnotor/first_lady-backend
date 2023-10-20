@@ -21,7 +21,7 @@ enum OrderState {
     ERROR = "ERREUR",
 }
 
-@Entity("orders")
+@Entity("orders", { orderBy: { created_at: "DESC" } })
 class OrderEntity extends DefaultEntity {
     @Column()
     type: OrderType;

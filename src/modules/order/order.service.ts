@@ -246,29 +246,35 @@ export class OrderService {
                 }),
             };
         else {
-            const results: OrderStats[] = await this.orderRepo
-                .createQueryBuilder("orders")
-                .groupBy("month")
-                .where("date BETWEEN :start AND :end", {
-                    start: new Date(year, 0, 1),
-                    end: new Date(year, 11, 31),
-                })
-                .select("date_part('month', date)", "month")
-                .addSelect("count(orders.id)", "nbr")
-                .getRawMany();
+            const select_series = this.orderRepo.manager.query<OrderStats[]>(
+                `
+                SELECT
+                days as month,
+                coalesce(nbr, 0) as nbr,
+                date($1) + days-1 as date
+                FROM
+                generate_series(1, 366) as days
+                LEFT JOIN (
+                    SELECT
+                    date_part('doy', created_at) as created_day,
+                    count(orders.id) as nbr
+                    FROM
+                    orders
+                    WHERE created_at BETWEEN $1 AND $2
+                    GROUP BY
+                    created_day
+                    ORDER BY
+                    created_day
+                ) as ordered ON ordered.created_day = days
+                ORDER BY
+                days
+                `,
+                [new Date(year, 0, 1), new Date(year, 11, 31)]
+            );
 
-            const stats: OrderStats[] = [];
-            for (let i = 0; i < 12; i++)
-                stats.push(
-                    results.find((item) => item.month == i) ?? {
-                        month: i,
-                        nbr: 0,
-                    }
-                );
-
-            return stats;
+            return select_series;
         }
     }
 }
 
-type OrderStats = { month: number; nbr: string | number };
+type OrderStats = { days: number; nbr: string | number };
