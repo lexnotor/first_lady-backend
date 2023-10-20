@@ -145,6 +145,8 @@ export class OrderController {
     // cet endpoint permet de recuperer un resumé des commandes enregistré
     @Get("stats")
     async getOrderStats(@Query("year") year: number): Promise<ApiResponse> {
+        if (!isNaN(year) && (year > 2300 || year < 1000))
+            throw new HttpException("BAD_YEAR", 404);
         return {
             message: "ORDER_STATS",
             data: await this.orderService.loadProductStat(year),
