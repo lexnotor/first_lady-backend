@@ -13,23 +13,21 @@ export class SeedRoles1697239230016 implements MigrationInterface {
         const data = [
             {
                 title: RoleType.UPDATE_USER,
-                description: "This one can manage other user",
+                description: "Peut gérer les utilisateurs",
             },
             {
                 title: RoleType.UPDATE_PRODUCT,
-                description: "This one can update product",
+                description: "Peut modifier ou ajouter des produits",
             },
             {
                 title: RoleType.UPDATE_ORDER,
-                description: "This one can change order status, or delete",
-            },
-            {
-                title: RoleType.SELLER,
-                description: "This one can change save local order",
+                description:
+                    "Peut changer les status ou suprimer des commandes",
             },
             {
                 title: RoleType.STAFF,
-                description: "This one can just access all data",
+                description:
+                    "Personnel simple, peut acceder à toutes les données en lecture seul",
             },
         ];
         const result = await queryRunner.manager
@@ -55,23 +53,21 @@ export class SeedRoles1697239230016 implements MigrationInterface {
         const data = [
             {
                 title: RoleType.UPDATE_USER,
-                description: "This one can manage other user",
+                description: "Peut gérer les utilisateurs",
             },
             {
                 title: RoleType.UPDATE_PRODUCT,
-                description: "This one can update product",
+                description: "Peut modifier ou ajouter des produits",
             },
             {
                 title: RoleType.UPDATE_ORDER,
-                description: "This one can change order status, or delete",
-            },
-            {
-                title: RoleType.SELLER,
-                description: "This one can change save local order",
+                description:
+                    "Peut changer les status ou suprimer des commandes",
             },
             {
                 title: RoleType.STAFF,
-                description: "This one can just access all data",
+                description:
+                    "Personnel simple, peut acceder à toutes les données en lecture seul",
             },
         ];
         const roles = await queryRunner.manager
