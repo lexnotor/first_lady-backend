@@ -107,6 +107,26 @@ class RoleService {
         return role;
     }
 
+    async getUserRoles(userId: string) {
+        let roles: UserShopRoleEntity[];
+        const filter: FindManyOptions<UserShopRoleEntity> = {};
+        filter.where = {
+            user_shop: { user: Equal(userId) },
+        };
+        filter.relations = {
+            role: true,
+            user_shop: true,
+        };
+
+        try {
+            roles = await this.userShopRepo.find(filter);
+        } catch (error) {
+            throw new HttpException("ROLES_NOT_FOUND", HttpStatus.BAD_REQUEST);
+        }
+
+        return roles;
+    }
+
     async findRoles(payload: RoleInfo = {}): Promise<RoleEntity[]> {
         let roles: RoleEntity[];
 

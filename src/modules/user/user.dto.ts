@@ -139,7 +139,6 @@ class AssignRoleDto {
     @IsUUID()
     user_id: string;
 
-    @ArrayNotEmpty()
     @IsUUID(undefined, { each: true })
     roles: RoleType[];
 }
