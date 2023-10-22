@@ -1,4 +1,12 @@
-import { IsInt, IsNotEmpty, IsUUID } from "class-validator";
+import { Type } from "class-transformer";
+import {
+    IsBoolean,
+    IsInt,
+    IsNotEmpty,
+    IsOptional,
+    IsUUID,
+    ValidateIf,
+} from "class-validator";
 
 class AddItemDto {
     @IsNotEmpty()
@@ -16,4 +24,18 @@ class UpdateItemDto {
     quantity: number;
 }
 
-export { AddItemDto, UpdateItemDto };
+class RemoveItemDto {
+    @IsOptional()
+    @IsBoolean()
+    @Type(() => Boolean)
+    all: boolean;
+
+    @IsOptional()
+    @IsUUID()
+    @ValidateIf((dto) => dto.all == undefined, {
+        message: "itemId and all must be use separatly",
+    })
+    itemId: string;
+}
+
+export { AddItemDto, UpdateItemDto, RemoveItemDto };

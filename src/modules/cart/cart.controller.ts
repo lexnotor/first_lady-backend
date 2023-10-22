@@ -1,12 +1,22 @@
 import { ApiResponse } from "@/index";
-import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpException,
+    HttpStatus,
+    Post,
+    Query,
+    UseGuards,
+} from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { User, UserIdentity } from "../auth/auth.decorator";
 import { AuthGuard } from "../auth/auth.guard";
 import { ProductService } from "../product/product.service";
 import { ProductVersionService } from "../product/productVersion.service";
 import { UserService } from "../user/user.service";
-import { AddItemDto } from "./cart.dto";
+import { AddItemDto, RemoveItemDto } from "./cart.dto";
 import { CartEntity, CartProductEntity } from "./cart.entity";
 import { CartService } from "./cart.service";
 
@@ -73,5 +83,31 @@ export class CartController {
             message: "USER_CART",
             data: items,
         };
+    }
+
+    @Delete("item/delete")
+    @UseGuards(AuthGuard)
+    async removeItem(
+        @Query() query: RemoveItemDto,
+        @User() userAuth: UserIdentity
+    ): Promise<ApiResponse<string | string[]>> {
+        if (query.itemId) {
+            return {
+                message: "ITEM_REMOVED",
+                data: await this.cartService.deleteItem(query.itemId),
+            };
+        } else if (query.all) {
+            let cart;
+            try {
+                cart = await this.cartService.getUserCart(userAuth.id);
+            } catch (error) {
+                cart = await this.createCart(userAuth.id);
+            }
+            return {
+                message: "CART_EMPTY",
+                data: await this.cartService.emptyCart(cart.id),
+            };
+        } else
+            throw new HttpException("ITEM_NOT_SPECIFY", HttpStatus.BAD_REQUEST);
     }
 }
