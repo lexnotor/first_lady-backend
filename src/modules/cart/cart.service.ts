@@ -1,7 +1,13 @@
 import { CartProductInfo } from "@/index";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Equal, FindManyOptions, FindOneOptions, Repository } from "typeorm";
+import {
+    Equal,
+    FindManyOptions,
+    FindOneOptions,
+    FindOptionsWhere,
+    Repository,
+} from "typeorm";
 import { ProductVersionEntity } from "../product/product.entity";
 import { UserEntity } from "../user/user.entity";
 import { CartEntity, CartProductEntity } from "./cart.entity";
@@ -204,5 +210,14 @@ export class CartService {
         }
 
         return item_id;
+    }
+
+    async emptyCart(cartId: string): Promise<string> {
+        const filter: FindOptionsWhere<CartProductEntity> = {
+            cart: Equal(cartId),
+        };
+
+        this.cartProductRepo.softDelete(filter);
+        return cartId;
     }
 }
