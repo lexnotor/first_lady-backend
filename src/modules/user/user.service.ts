@@ -153,16 +153,16 @@ export class UserService {
     }
 
     async dismissAllRoleFrom(userId: string): Promise<UserShopRoleEntity[]> {
-        const user = await this.getUserRoles(userId);
+        const roles = await this.getUserRoles(userId);
 
-        return await this.userShopRoleRepo.softRemove(user);
+        return await this.userShopRoleRepo.softRemove(roles);
     }
 
     async getUserRoles(userId: string): Promise<UserShopRoleEntity[]> {
         let roles: UserShopRoleEntity[];
 
         const filter: FindOneOptions<UserShopRoleEntity> = {};
-        filter.where = { id: Equal(userId) };
+        filter.where = { user_shop: { user: Equal(userId) } };
         filter.relations = {
             role: true,
             user_shop: true,

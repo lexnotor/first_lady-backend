@@ -87,7 +87,8 @@ export class SeedData1695627807936 implements MigrationInterface {
                 .getRepository<RoleEntity>(RoleEntity)
                 .insert({
                     title: RoleType.OWNER,
-                    description: "THE SHOP CREATOR IS THE OWNER",
+                    description:
+                        "Le propriétaire de la boutique, a tous les droits",
                 });
         return await queryRunner.manager
             .getRepository<RoleEntity>(RoleEntity)
@@ -102,7 +103,8 @@ export class SeedData1695627807936 implements MigrationInterface {
                 .getRepository<RoleEntity>(RoleEntity)
                 .insert({
                     title: RoleType.OWNER,
-                    description: "THE SHOP CREATOR IS THE OWNER",
+                    description:
+                        "Le propriétaire de la boutique, a tous les droits",
                 });
         return role?.id;
     }

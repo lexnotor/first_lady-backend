@@ -85,10 +85,14 @@ export class UserController {
                 this.roleService.getRoleById(item)
             )
         );
+        await this.userService.assignUserRoles(user_shop, roles);
 
+        const newRoles = await this.roleService.getUserRoles(payload.user_id);
+
+        // console.log(newRoles);
         return {
             message: "ROLE_SET",
-            data: await this.userService.assignUserRoles(user_shop, roles),
+            data: newRoles,
         };
     }
 

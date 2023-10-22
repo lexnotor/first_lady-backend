@@ -86,7 +86,7 @@ export class OrderController {
     // similaire à saveOrder
     @Post("local")
     @UseGuards(AuthGuard)
-    @HasRole(RoleType.SELLER)
+    @HasRole(RoleType.UPDATE_ORDER)
     async saveLocalOrder(
         @Body() payload: SaveLocalOrderDto,
         @User() { id: UserId }: UserIdentity
