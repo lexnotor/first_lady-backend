@@ -101,7 +101,7 @@ export class AuthService {
         const user = await this.userService.createUser({
             ...payload,
             username,
-            secret: await this.hashSecret(psw),
+            secret: psw,
         });
 
         try {
