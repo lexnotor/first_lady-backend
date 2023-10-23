@@ -86,7 +86,7 @@ export class PaymentController {
             })),
             mode: "payment",
             metadata: {
-                address: payload.address ?? "My address",
+                address: payload.address ?? "(Aucune addresse)",
             },
         };
 
