@@ -5,7 +5,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { compareSync, genSaltSync, hash } from "bcrypt";
 import { Buffer } from "buffer";
 import { randomUUID } from "crypto";
-import { Repository } from "typeorm";
+import { Equal, FindOptionsWhere, Repository } from "typeorm";
 import { CreateUserDto } from "../user/user.dto";
 import { TokenEntity, UserEntity } from "../user/user.entity";
 import { UserService } from "../user/user.service";
@@ -111,6 +111,16 @@ export class AuthService {
                 "USERNAME_ALREADY_EXIST",
                 HttpStatus.CONFLICT
             );
+        }
+    }
+
+    async revokeToken(userId: string) {
+        const filter: FindOptionsWhere<TokenEntity> = { user: Equal(userId) };
+
+        try {
+            await this.tokenRepo.softDelete(filter);
+        } catch (error) {
+            return null;
         }
     }
 

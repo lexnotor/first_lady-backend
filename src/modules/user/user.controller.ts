@@ -31,13 +31,15 @@ import {
 } from "./user.entity";
 import { UserService } from "./user.service";
 import { ShopService } from "../shop/shop.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 @Controller("user")
 export class UserController {
     constructor(
         private readonly roleService: RoleService,
         private readonly userService: UserService,
-        private readonly shopService: ShopService
+        private readonly shopService: ShopService,
+        private readonly eventEmitter: EventEmitter2
     ) {}
 
     @Post("role/new")
@@ -79,6 +81,11 @@ export class UserController {
         const user_shop = await this.userService.getUserShop(payload.user_id);
 
         await this.userService.dismissAllRoleFrom(payload.user_id);
+
+        // handle in auth controller
+        this.eventEmitter.emit("delete/usertoken", {
+            user_id: payload.user_id,
+        });
 
         const roles = await Promise.all(
             payload.roles.map(async (item) =>
