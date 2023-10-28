@@ -14,6 +14,7 @@ import { SignupUserDto } from "../user/user.dto";
 import { User, UserIdentity } from "./auth.decorator";
 import { AuthGuard } from "./auth.guard";
 import { AuthService } from "./auth.service";
+import { OnEvent } from "@nestjs/event-emitter";
 
 @Controller()
 export class AuthController {
@@ -75,5 +76,10 @@ export class AuthController {
         return {
             data: user,
         };
+    }
+
+    @OnEvent("delete/usertoken")
+    async deleteUserToken(payload: { user_id: string }) {
+        await this.authService.revokeToken(payload.user_id);
     }
 }
